@@ -31,7 +31,7 @@
 <Modal
 	open={menuStore.isDetailDrawerOpen}
 	title={currentItem?.name || 'Detail Menu Siap Jual'}
-	maxWidth="840px"
+	maxWidth="clamp(980px, 80vw, 1440px)"
 	onclose={() => menuStore.closeDetailDrawer()}
 >
 	{#if currentItem}

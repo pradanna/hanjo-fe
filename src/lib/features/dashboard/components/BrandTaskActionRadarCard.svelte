@@ -290,7 +290,7 @@
 						</button>
 					{:else if detailModalTask.type === 'proposal'}
 						<a
-							href="/catalog#proposals"
+							href="/menu#recipes"
 							class="btn-approve-direct py-2 px-4"
 							style="background: var(--brand-primary); border-color: var(--brand-primary);"
 							onclick={() => completeTask(detailModalTask!, 'Menuju Kurasi')}

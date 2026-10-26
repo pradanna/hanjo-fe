@@ -136,7 +136,7 @@
 	maxWidth="880px"
 	onclose={() => (menuStore.isRecipeModalOpen = false)}
 >
-	<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-5">
+	<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="form-field-stack">
 		<!-- Peringatan Invariant Immutabilitas Resep Berversi -->
 		<div class="formula-callout !border-indigo-500/30">
 			<Icon name="clock" size={20} class="text-indigo-400 shrink-0 mt-0.5" />

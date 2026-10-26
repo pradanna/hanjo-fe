@@ -56,6 +56,22 @@ export class MenuService {
 		return apiClient.get<MenuCategory[]>(Endpoints.MENU.CATEGORIES);
 	}
 
+	async getCategory(id: string): Promise<MenuCategory> {
+		return apiClient.get<MenuCategory>(Endpoints.MENU.CATEGORY_DETAIL(id));
+	}
+
+	async createCategory(data: Partial<MenuCategory>): Promise<MenuCategory> {
+		return apiClient.post<MenuCategory>(Endpoints.MENU.CATEGORIES, data);
+	}
+
+	async updateCategory(id: string, data: Partial<MenuCategory>): Promise<MenuCategory> {
+		return apiClient.put<MenuCategory>(Endpoints.MENU.CATEGORY_DETAIL(id), data);
+	}
+
+	async deleteCategory(id: string): Promise<{ success: boolean; id: string }> {
+		return apiClient.delete<{ success: boolean; id: string }>(Endpoints.MENU.CATEGORY_DETAIL(id));
+	}
+
 	// --------------------------------------------------------------------------
 	// 2. Modifier Groups & Efek Resep
 	// --------------------------------------------------------------------------

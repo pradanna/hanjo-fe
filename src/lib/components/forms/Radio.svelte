@@ -135,29 +135,30 @@
 	.radio-card {
 		display: flex;
 		align-items: flex-start;
-		gap: 10px;
-		padding: 10px 14px;
-		border: 1px solid var(--border-panel, #e2e8f0);
-		border-radius: var(--radius-md, 8px);
-		background: #ffffff;
+		gap: 12px;
+		padding: 12px 16px;
+		border: 1px solid var(--border-panel, rgba(255, 255, 255, 0.08));
+		border-radius: var(--radius-lg, 10px);
+		background: var(--bg-panel, #1e293b);
 		cursor: pointer;
-		transition: all 0.15s ease-in-out;
+		transition: all 0.2s ease-in-out;
+		min-height: 48px;
 	}
 
 	.radio-card:hover:not(.is-disabled) {
-		border-color: var(--brand-primary, #059669);
-		background-color: #f8fafc;
+		border-color: var(--brand-primary, #10b981);
+		background-color: var(--bg-panel-hover, rgba(255, 255, 255, 0.04));
 	}
 
 	.radio-card.is-checked {
-		border-color: var(--brand-primary, #059669);
-		background-color: #ecfdf5;
+		border-color: var(--pill-success-border, rgba(16, 185, 129, 0.35));
+		background-color: var(--pill-success-bg, rgba(16, 185, 129, 0.08));
 	}
 
 	.radio-card.is-disabled {
 		opacity: 0.6;
 		cursor: not-allowed;
-		background: #f1f5f9;
+		background: var(--bg-panel-sub, #0f172a);
 	}
 
 	.sr-only {
@@ -172,46 +173,46 @@
 	}
 
 	.radio-circle {
-		width: 18px;
-		height: 18px;
-		border: 1.5px solid var(--border-panel, #94a3b8);
+		width: 20px;
+		height: 20px;
+		border: 1.5px solid var(--border-panel, rgba(255, 255, 255, 0.2));
 		border-radius: 50%;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		margin-top: 1px;
+		margin-top: 2px;
 		flex-shrink: 0;
-		transition: all 0.15s;
-		background: #ffffff;
+		transition: all 0.2s;
+		background: var(--bg-input, #0f172a);
 	}
 
 	.radio-circle.checked {
-		border-color: var(--brand-primary, #059669);
+		border-color: var(--brand-primary, #10b981);
 	}
 
 	.inner-dot {
 		width: 10px;
 		height: 10px;
 		border-radius: 50%;
-		background-color: var(--brand-primary, #059669);
+		background-color: var(--brand-primary, #10b981);
 	}
 
 	.radio-text {
 		display: flex;
 		flex-direction: column;
-		gap: 2px;
+		gap: 3px;
 	}
 
 	.option-title {
-		font-size: 13px;
+		font-size: 13.5px;
 		font-weight: 600;
-		color: var(--text-main, #0f172a);
+		color: var(--text-main, #f8fafc);
 	}
 
 	.option-desc {
-		font-size: 11.5px;
-		color: var(--text-muted, #64748b);
-		line-height: 1.35;
+		font-size: 12px;
+		color: var(--text-muted, #94a3b8);
+		line-height: 1.4;
 	}
 
 	.form-feedback {

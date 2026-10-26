@@ -134,6 +134,12 @@
       - `Textarea`: `padding: 12px 14px; min-height: 80px;`.
       - Opsi Dropdown (`.select-option-item`, `.option-item`): `padding: 9px 14px;` dengan gap `4px`.
       - Trigger Icon / Arrow: diberi padding samping minimal `12px-14px` agar tidak mepet ke tepi kanan.
+    - **Standar Jarak Vertikal Antar-Field Formulir (Field Spacing & Margin $\ge$ 20px–24px & Anti-Campur Aduk)**:
+      - Jarak vertikal antar-baris formulir / input controls (`.form-field-stack`, grid input rows, field stack) **WAJIB minimal 20px (gap-5 / 20px–24px)**.
+      - **DILARANG KERAS** menggunakan jarak minimalis/terlalu mepet seperti `space-y-2`, `space-y-3`, `gap-2`, atau `gap-3` (12px–14px) yang membuat label field di bawah menempel ketat pada dasar kotak input di baris atasnya sehingga tampak campur aduk dan membingungkan pengguna.
+      - Jarak horizontal antar-kolom input dalam 1 baris grid: `gap: 16px` (gap-4).
+      - Jarak antara label dengan kotak input di dalam komponen field: `gap: 6px`–`8px`.
+      - Gunakan utility terstandar `.form-field-stack` (`display: flex; flex-direction: column; gap: 20px;`) atau `.form-field-grid` (`display: grid; gap: 20px 16px;`).
     - **Standar Padding Modal & Drawer**:
       - `Modal Header`: `padding: 18px 24px;`
       - `Modal Body`: `padding: 24px;`

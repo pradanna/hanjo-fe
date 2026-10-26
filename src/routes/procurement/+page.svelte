@@ -423,6 +423,7 @@
 		font-size: 13px;
 		font-weight: 600;
 		color: var(--text-muted);
+		border: 1px solid transparent;
 		transition: all 0.15s;
 		white-space: nowrap;
 	}
@@ -433,9 +434,10 @@
 	}
 
 	.tab-btn.active {
-		color: var(--brand-primary-light);
-		background: var(--brand-primary-dim);
-		border: 1px solid var(--brand-primary);
+		color: var(--pill-success-text, #34d399);
+		background: var(--pill-success-bg, rgba(16, 185, 129, 0.14));
+		border: 1px solid var(--pill-success-border, rgba(16, 185, 129, 0.35));
+		box-shadow: 0 2px 10px rgba(16, 185, 129, 0.15);
 	}
 
 	.tab-icon {

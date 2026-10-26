@@ -480,3 +480,16 @@ samp {
 	padding-top: 20px;
 	border-top: 1px solid var(--border-panel);
 }
+
+/* Standard Form Field Spacing & Stacks (Generous Breathing Room & Anti-Campur Aduk) */
+.form-field-stack {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.form-field-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 20px 16px;
+}

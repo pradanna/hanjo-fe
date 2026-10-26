@@ -56,7 +56,7 @@
 			</a>
 
 			<a
-				href="/catalog#proposals"
+				href="/menu#recipes"
 				class="btn-approve-direct text-xs py-2 px-3 font-semibold"
 				style="background: var(--brand-primary); border-color: var(--brand-primary);"
 			>

@@ -16,14 +16,14 @@
 	title="Usulan Menu Lokal Gerai"
 	icon="light-bulb"
 	subtitle="Pelacakan inovasi menu dan resep racikan gerai yang diajukan ke pusat"
-	drilldownUrl="/catalog"
+	drilldownUrl="/menu#recipes"
 	drilldownLabel="Usulan Katalog"
 	colSpan="col-12 col-lg-6"
 >
 	{#if items.length === 0}
 		<div class="p-6 text-center text-muted flex flex-col items-center gap-3">
 			<p>Belum ada usulan menu lokal yang diajukan.</p>
-			<Button variant="secondary" size="sm" href="/catalog">
+			<Button variant="secondary" size="sm" href="/menu#recipes">
 				<Icon name="plus" size={13} />
 				<span>Buat Usulan Resep Baru</span>
 			</Button>
@@ -47,7 +47,7 @@
 					</div>
 
 					<a
-						href="/catalog"
+						href="/menu#recipes"
 						class="btn-view-direct text-xs py-1.5 px-3 font-semibold flex-shrink-0"
 					>
 						<Icon name="eye" size={13} />
@@ -59,7 +59,7 @@
 			<div class="flex items-center justify-between pt-2 border-t text-xs" style="border-color: var(--border-panel);">
 				<span class="text-muted text-[11px]">Inovasi menu lokal disetujui dapat dirilis ke POS gerai</span>
 				<a
-					href="/catalog"
+					href="/menu#recipes"
 					class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all"
 					style="background: var(--bg-panel-sub); border: 1px solid var(--border-panel); color: var(--text-main);"
 				>

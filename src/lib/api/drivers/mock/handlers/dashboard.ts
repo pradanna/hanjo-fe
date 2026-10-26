@@ -215,7 +215,7 @@ function generateActionCenterData(role: string, outletId: string, date: string):
 				type: 'MENU_PROPOSAL',
 				title: 'Usulan Menu Lokal Menunggu Kurasi',
 				desc: 'Store Manager Senopati mengajukan varian Avocado Cold Brew untuk menu seasonal.',
-				actionUrl: '/catalog#proposals',
+				actionUrl: '/menu#recipes',
 				actionLabel: 'Kurasi Resep',
 				badge: 'Usulan Baru',
 				badgeColor: 'info'
@@ -303,7 +303,7 @@ function generateActionCenterData(role: string, outletId: string, date: string):
 				type: 'MENU_PROPOSAL',
 				title: 'Usulan Menu Baru (Avocado Cold Brew)',
 				desc: 'Store Manager Senopati mengajukan varian seasonal summer. Butuh kurasi Brand Manager sebelum diteruskan ke HQ.',
-				actionUrl: '/catalog#proposals',
+				actionUrl: '/menu#recipes',
 				actionLabel: 'Kurasi Resep',
 				badge: 'Kurasi Resep',
 				badgeColor: 'info',

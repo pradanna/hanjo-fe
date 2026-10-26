@@ -376,7 +376,7 @@
 	.section-grid {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
-		gap: 12px 14px;
+		gap: 20px 16px;
 	}
 
 	.grid-full {

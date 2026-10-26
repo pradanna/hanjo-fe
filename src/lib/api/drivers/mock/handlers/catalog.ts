@@ -270,6 +270,14 @@ export let mockSuppliers: Supplier[] = [
 // ============================================================================
 // 5. In-Memory State: 40 Master Bahan Baku (Stock Items)
 // ============================================================================
+// ============================================================================
+// Callback dinamis sinkronisasi jumlah formula resep dari modul menu
+// ============================================================================
+let recipeCountGetter: ((stockItemId: string) => number) | null = null;
+export function setRecipeCountGetter(fn: (stockItemId: string) => number): void {
+	recipeCountGetter = fn;
+}
+
 export let mockStockItems: StockItem[] = [
 	// --- Kopi & Espresso (6 items) ---
 	{
@@ -283,7 +291,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: false,
 		hq_ref_code: 'HQ-ROAST-ESP',
-		hq_ref_price: '240000.00',
+		hq_ref_price: '240.00',
 		status: 'active',
 		description: 'Racikan house blend 70% Arabica Mandheling & 30% Robusta Dampit untuk base espresso',
 		storage_temperature: 'ambient',
@@ -310,7 +318,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: true,
 		hq_ref_code: 'HQ-SO-GAYO',
-		hq_ref_price: '320000.00',
+		hq_ref_price: '320.00',
 		status: 'active',
 		description: 'Biji kopi Arabica Gayo single origin untuk filter manual brew V60',
 		storage_temperature: 'ambient',
@@ -336,7 +344,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: true,
 		hq_ref_code: 'HQ-SO-FLORES',
-		hq_ref_price: '350000.00',
+		hq_ref_price: '350.00',
 		status: 'active',
 		description: 'Aroma apel merah, cokelat karamel, rasa manis lembut',
 		storage_temperature: 'ambient',
@@ -361,7 +369,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: true,
 		hq_ref_code: 'HQ-SO-BALI',
-		hq_ref_price: '340000.00',
+		hq_ref_price: '340.00',
 		status: 'active',
 		description: 'Notes jeruk citrus cerah dan madu liar, dipanggang medium-light',
 		storage_temperature: 'ambient',
@@ -386,7 +394,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: false,
 		hq_ref_code: 'HQ-DECAF-COL',
-		hq_ref_price: '380000.00',
+		hq_ref_price: '380.00',
 		status: 'active',
 		description: 'Kopi tanpa kafein dengan proses Swiss Water alami tanpa pelarut kimia',
 		storage_temperature: 'ambient',
@@ -411,7 +419,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: true,
 		hq_ref_code: 'HQ-ROB-DMP',
-		hq_ref_price: '110000.00',
+		hq_ref_price: '110.00',
 		status: 'active',
 		description: 'Body tebal, crema melimpah untuk racikan es kopi susu tradisional',
 		storage_temperature: 'ambient',
@@ -439,7 +447,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: true,
 		hq_ref_code: 'HQ-MILK-GF',
-		hq_ref_price: '21500.00',
+		hq_ref_price: '21.50',
 		status: 'active',
 		description: 'Susu segar pasteurisasi kemasan 1 Liter untuk latte art microfoam',
 		storage_temperature: 'chilled',
@@ -466,7 +474,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: true,
 		hq_ref_code: 'HQ-MILK-OAT',
-		hq_ref_price: '46000.00',
+		hq_ref_price: '46.00',
 		status: 'active',
 		description: 'Susu oat plant-based vegan friendly kemasan 1 Liter',
 		storage_temperature: 'ambient',
@@ -492,7 +500,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: true,
 		hq_ref_code: 'HQ-MILK-ALM',
-		hq_ref_price: '44000.00',
+		hq_ref_price: '44.00',
 		status: 'active',
 		description: 'Susu almond khusus minuman kopi dengan rasa nutty yang gurih',
 		storage_temperature: 'ambient',
@@ -517,7 +525,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: true,
 		hq_ref_code: 'HQ-SKM-CRN',
-		hq_ref_price: '13500.00',
+		hq_ref_price: '36.49',
 		status: 'active',
 		description: 'Pemanis kental manis untuk kopi tarik dan es kopi susu kampung',
 		storage_temperature: 'ambient',
@@ -543,7 +551,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: true,
 		hq_ref_code: 'HQ-CRM-ANC',
-		hq_ref_price: '72000.00',
+		hq_ref_price: '72.00',
 		status: 'active',
 		description: 'Krim cair kental untuk topping macchiato, viennois, dan pastry filling',
 		storage_temperature: 'chilled',
@@ -568,7 +576,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: true,
 		hq_ref_code: 'HQ-EVA-FN',
-		hq_ref_price: '17000.00',
+		hq_ref_price: '44.74',
 		status: 'active',
 		description: 'Susu evaporasi gurih tanpa gula untuk campuran milk tea dan avocado coffee',
 		storage_temperature: 'ambient',
@@ -596,7 +604,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: false,
 		hq_ref_code: 'HQ-SYR-VAN',
-		hq_ref_price: '145000.00',
+		hq_ref_price: '207.14',
 		status: 'active',
 		description: 'Sirup vanilla Madagaskar dengan aroma lembut manis alami',
 		storage_temperature: 'ambient',
@@ -622,7 +630,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: false,
 		hq_ref_code: 'HQ-SYR-CAR',
-		hq_ref_price: '145000.00',
+		hq_ref_price: '207.14',
 		status: 'active',
 		description: 'Sirup rasa gula karamel panggang gurih wangi',
 		storage_temperature: 'ambient',
@@ -648,7 +656,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: false,
 		hq_ref_code: 'HQ-SYR-HAZ',
-		hq_ref_price: '145000.00',
+		hq_ref_price: '207.14',
 		status: 'active',
 		description: 'Aroma kacang hazelnut panggang kaya rasa',
 		storage_temperature: 'ambient',
@@ -674,7 +682,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: true,
 		hq_ref_code: 'HQ-AREN-ORG',
-		hq_ref_price: '38000.00',
+		hq_ref_price: '38.00',
 		status: 'active',
 		description: 'Nira aren murni dari petani Lebak Banten, kental dan smoky',
 		storage_temperature: 'ambient',
@@ -700,7 +708,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: true,
 		hq_ref_code: 'HQ-SYR-TEBU',
-		hq_ref_price: '18000.00',
+		hq_ref_price: '18.00',
 		status: 'active',
 		description: 'Sirup gula pasir tebu 65 brix untuk pemanis teh dan mocktail',
 		storage_temperature: 'ambient',
@@ -726,7 +734,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: false,
 		hq_ref_code: 'HQ-SYR-PAN',
-		hq_ref_price: '65000.00',
+		hq_ref_price: '92.86',
 		status: 'active',
 		description: 'Ekstrak daun suji dan pandan wangi untuk Kopi Pandan Latte',
 		storage_temperature: 'chilled',
@@ -752,7 +760,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: false,
 		hq_ref_code: 'HQ-SYR-LYC',
-		hq_ref_price: '145000.00',
+		hq_ref_price: '207.14',
 		status: 'active',
 		description: 'Sirup buah leci segar untuk Lychee Tea dan signature cold brew refresher',
 		storage_temperature: 'ambient',
@@ -780,7 +788,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: false,
 		hq_ref_code: 'HQ-MAT-UJI',
-		hq_ref_price: '650000.00',
+		hq_ref_price: '650.00',
 		status: 'active',
 		description: 'Matcha hijau pekat dari Kyoto Jepang, rasa umami lembut tanpa perisa tambahan',
 		storage_temperature: 'chilled',
@@ -806,7 +814,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: false,
 		hq_ref_code: 'HQ-COK-BEL',
-		hq_ref_price: '220000.00',
+		hq_ref_price: '220.00',
 		status: 'active',
 		description: 'Cokelat bubuk pekat lezat untuk Hot Chocolate dan Mocha signature',
 		storage_temperature: 'ambient',
@@ -832,7 +840,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: true,
 		hq_ref_code: 'HQ-RED-VEL',
-		hq_ref_price: '160000.00',
+		hq_ref_price: '160.00',
 		status: 'active',
 		description: 'Bubuk minuman red velvet dengan aroma vanili buttermilk',
 		storage_temperature: 'ambient',
@@ -858,7 +866,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: true,
 		hq_ref_code: 'HQ-TAR-PRM',
-		hq_ref_price: '155000.00',
+		hq_ref_price: '155.00',
 		status: 'active',
 		description: 'Bubuk taro ubi ungu creamy gurih',
 		storage_temperature: 'ambient',
@@ -884,7 +892,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: false,
 		hq_ref_code: 'HQ-HOJ-KYO',
-		hq_ref_price: '380000.00',
+		hq_ref_price: '760.00',
 		status: 'active',
 		description: 'Teh hijau panggang aroma smoky nutty khas Jepang',
 		storage_temperature: 'ambient',
@@ -911,7 +919,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: true,
 		hq_ref_code: 'HQ-ICE-TUB',
-		hq_ref_price: '15000.00',
+		hq_ref_price: '1500.00',
 		status: 'active',
 		description: 'Es kristal berongga padat, dingin lebih tahan lama tanpa cepat mencair',
 		storage_temperature: 'frozen',
@@ -938,7 +946,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: true,
 		hq_ref_code: 'HQ-AIR-GAL',
-		hq_ref_price: '21000.00',
+		hq_ref_price: '1105.26',
 		status: 'active',
 		description: 'Air mineral murni untuk mesin espresso komersial dan seduhan manual brew',
 		storage_temperature: 'ambient',
@@ -1229,7 +1237,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: true,
 		hq_ref_code: 'HQ-BTR-ELLE',
-		hq_ref_price: '410000.00',
+		hq_ref_price: '164.00',
 		status: 'active',
 		description: 'Mentega tawar premium Prancis dengan kandungan lemak susu 82% untuk croissant renyah',
 		storage_temperature: 'chilled',
@@ -1255,7 +1263,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: true,
 		hq_ref_code: 'HQ-TPG-CKR',
-		hq_ref_price: '275000.00',
+		hq_ref_price: '11000.00',
 		status: 'active',
 		description: 'Tepung gandum elastis tinggi gluten untuk roti artisanal dan pastry',
 		storage_temperature: 'ambient',
@@ -1281,7 +1289,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: true,
 		hq_ref_code: 'HQ-RAGI-SAF',
-		hq_ref_price: '48000.00',
+		hq_ref_price: '96.00',
 		status: 'active',
 		description: 'Ragi ragi kering instan kualitas stabil untuk adonan fermentasi',
 		storage_temperature: 'ambient',
@@ -1307,7 +1315,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: true,
 		hq_ref_code: 'HQ-KJU-KRFT',
-		hq_ref_price: '198000.00',
+		hq_ref_price: '99.00',
 		status: 'active',
 		description: 'Keju cheddar gurih padat untuk parutan toast dan filling roti',
 		storage_temperature: 'chilled',
@@ -1411,7 +1419,7 @@ export let mockStockItems: StockItem[] = [
 		is_producible: false,
 		can_buy_external: true,
 		hq_ref_code: 'HQ-TST-CIN',
-		hq_ref_price: '90000.00',
+		hq_ref_price: '90.00',
 		status: 'active',
 		description: 'Item uji coba tanpa stok dan tanpa resep untuk memvalidasi pengarsipan bahan (AC-03.5)',
 		storage_temperature: 'ambient',
@@ -1747,6 +1755,13 @@ export function registerCatalogHandlers(): void {
 			);
 		}
 
+		if (recipeCountGetter) {
+			list = list.map((item) => ({
+				...item,
+				recipes_using_count: recipeCountGetter!(item.id)
+			}));
+		}
+
 		// AC-03.6: Store Manager Scope Lock (Hanya melihat stok dan minimum outlet tugasnya)
 		if (role === 'store_manager') {
 			const userOutletIds = currentUser?.outlet_ids || ['out-jkt-01'];
@@ -1835,6 +1850,8 @@ export function registerCatalogHandlers(): void {
 			throw ApiErrors.notFound(`Bahan baku "${ctx.params.id}" tidak ditemukan`);
 		}
 
+		const dynamicRecipesCount = recipeCountGetter ? recipeCountGetter(item.id) : (item.recipes_using_count || 0);
+
 		if (role === 'store_manager') {
 			const userOutletIds = currentUser?.outlet_ids || ['out-jkt-01'];
 			const filteredStockByOutlet: Record<string, any> = {};
@@ -1846,12 +1863,13 @@ export function registerCatalogHandlers(): void {
 			return {
 				data: {
 					...item,
+					recipes_using_count: dynamicRecipesCount,
 					stock_by_outlet: filteredStockByOutlet
 				}
 			};
 		}
 
-		return { data: item };
+		return { data: { ...item, recipes_using_count: dynamicRecipesCount } };
 	});
 
 	router.register('PUT', '/api/v1/stock-items/:id', async (ctx) => {
@@ -2052,7 +2070,7 @@ export function registerCatalogHandlers(): void {
 					id: 'item-kop-01',
 					name: 'Espresso Blend House Arabica-Robusta',
 					code: 'KOP-ESP-01',
-					changes: 'Pembaruan hq_ref_price: 240000.00 -> 245000.00'
+					changes: 'Pembaruan hq_ref_price: 240.00 -> 245.00'
 				}
 			],
 			errors: [

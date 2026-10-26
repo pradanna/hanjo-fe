@@ -303,3 +303,33 @@ export function validateCsvRow(
 		errors
 	};
 }
+
+/**
+ * Evaluasi status ketersediaan/level stok bahan baku.
+ * Mengembalikan:
+ * - 'out_of_stock': jika total stok fisik <= 0 (Habis)
+ * - 'low_stock': jika stok pada salah satu outlet <= batas minimum outlet tersebut (Hampir Habis)
+ * - 'normal': stok aman di atas batas minimum
+ */
+export function getItemStockLevel(item: {
+	status?: string;
+	current_stock?: string;
+	stock_by_outlet?: Record<string, { current?: string; min?: string }>;
+}): 'out_of_stock' | 'low_stock' | 'normal' {
+	if (item.status === 'archived') return 'normal';
+	const total = parseFloat(item.current_stock || '0');
+	if (total <= 0) return 'out_of_stock';
+
+	if (item.stock_by_outlet && Object.keys(item.stock_by_outlet).length > 0) {
+		const entries = Object.values(item.stock_by_outlet);
+		const hasLow = entries.some((d) => {
+			const curr = parseFloat(d.current || '0');
+			const min = parseFloat(d.min || '0');
+			return min > 0 && curr <= min;
+		});
+		if (hasLow) return 'low_stock';
+	}
+
+	return 'normal';
+}
+

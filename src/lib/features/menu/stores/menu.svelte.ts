@@ -26,6 +26,9 @@ import type {
 } from '../../../api/contract/types.js';
 
 export class MenuStore {
+	// Navigasi Tab
+	activeTab = $state<'menus' | 'categories' | 'recipes' | 'modifiers' | 'pricing' | 'availability'>('menus');
+
 	// =========================================================================
 	// 1. Data Mentah State
 	// =========================================================================
@@ -47,6 +50,11 @@ export class MenuStore {
 	selectedStatusFilter = $state<'all' | 'active' | 'archived'>('active');
 	selectedOutletFilter = $state<string>('out-jkt-01');
 
+	// Filter & Pencarian Resep (BOM)
+	recipeSearchQuery = $state<string>('');
+	recipeIngredientFilter = $state<string>('all');
+	recipeScopeFilter = $state<'all' | 'standard' | 'outlet_override'>('all');
+
 	// =========================================================================
 	// 3. Detail Drawer & Tabs (Progressive Disclosure)
 	// =========================================================================
@@ -55,10 +63,13 @@ export class MenuStore {
 	detailDrawerTab = $state<'info' | 'variants' | 'recipe' | 'pricing' | 'hpp' | 'availability'>('info');
 
 	// =========================================================================
-	// 4. Modal Formulir (Menu, Resep, Modifier, Kalkulator)
+	// 4. Modal Formulir (Menu, Resep, Modifier, Kategori, Kalkulator)
 	// =========================================================================
 	isMenuModalOpen = $state<boolean>(false);
 	editingMenuItem = $state<MenuItem | null>(null);
+
+	isCategoryModalOpen = $state<boolean>(false);
+	editingCategory = $state<MenuCategory | null>(null);
 
 	isRecipeModalOpen = $state<boolean>(false);
 	editingRecipe = $state<Partial<Recipe> | null>(null);
@@ -129,6 +140,58 @@ export class MenuStore {
 	activeRecipesCount = $derived.by(() => {
 		return this.recipes.filter((r) => r.is_active).length;
 	});
+
+	filteredRecipes = $derived.by(() => {
+		let list = this.recipes;
+
+		// Filter berdasarkan Bahan Baku tertentu
+		if (this.recipeIngredientFilter && this.recipeIngredientFilter !== 'all') {
+			const target = this.recipeIngredientFilter.toLowerCase().trim();
+			list = list.filter((r) =>
+				r.ingredients?.some(
+					(ing) =>
+						ing.stock_item_id?.toLowerCase() === target ||
+						ing.stock_item_code?.toLowerCase() === target ||
+						ing.stock_item_name?.toLowerCase().includes(target)
+				)
+			);
+		}
+
+		// Filter berdasarkan Scope (Standar vs Override Gerai)
+		if (this.recipeScopeFilter !== 'all') {
+			list = list.filter((r) => r.scope_type === this.recipeScopeFilter);
+		}
+
+		// Pencarian teks resep / varian / menu / catatan
+		const query = this.recipeSearchQuery.toLowerCase().trim();
+		if (query) {
+			list = list.filter(
+				(r) =>
+					r.variant_name?.toLowerCase().includes(query) ||
+					r.variant_id?.toLowerCase().includes(query) ||
+					r.menu_item_name?.toLowerCase().includes(query) ||
+					r.notes?.toLowerCase().includes(query) ||
+					r.ingredients?.some(
+						(ing) =>
+							ing.stock_item_name?.toLowerCase().includes(query) ||
+							ing.stock_item_code?.toLowerCase().includes(query)
+					)
+			);
+		}
+
+		return list;
+	});
+
+	filterRecipesByIngredient(ingredientIdOrName: string) {
+		this.activeTab = 'recipes';
+		this.recipeIngredientFilter = ingredientIdOrName;
+	}
+
+	clearRecipeFilter() {
+		this.recipeIngredientFilter = 'all';
+		this.recipeSearchQuery = '';
+		this.recipeScopeFilter = 'all';
+	}
 
 	// =========================================================================
 	// 8. Actions & API Loading
@@ -220,6 +283,10 @@ export class MenuStore {
 		}
 	}
 
+	openMenuDetail(item: MenuItem): void {
+		this.openDetailDrawer(item);
+	}
+
 	closeDetailDrawer(): void {
 		this.isDetailDrawerOpen = false;
 		this.selectedMenuItem = null;
@@ -276,6 +343,69 @@ export class MenuStore {
 		} catch (err: any) {
 			toast.error(err.message || 'Gagal menyimpan grup modifier.');
 			throw err;
+		}
+	}
+
+	openCreateCategory(): void {
+		this.editingCategory = null;
+		this.isCategoryModalOpen = true;
+	}
+
+	openEditCategory(cat: MenuCategory): void {
+		this.editingCategory = cat;
+		this.isCategoryModalOpen = true;
+	}
+
+	closeCategoryModal(): void {
+		this.isCategoryModalOpen = false;
+		this.editingCategory = null;
+	}
+
+	async saveCategory(data: Partial<MenuCategory>): Promise<boolean> {
+		try {
+			if (this.editingCategory?.id) {
+				const updated = await menuService.updateCategory(this.editingCategory.id, data);
+				const idx = this.categories.findIndex((c) => c.id === updated.id);
+				if (idx >= 0) this.categories[idx] = updated;
+				// Sinkronisasi category_name pada list menuItems jika diubah
+				for (const m of this.menuItems) {
+					if (m.category_id === updated.id) {
+						m.category_name = updated.name;
+					}
+				}
+				toast.success(`Kategori menu "${updated.name}" berhasil diperbarui.`);
+			} else {
+				const created = await menuService.createCategory(data);
+				this.categories.push(created);
+				toast.success(`Kategori menu "${created.name}" berhasil ditambahkan.`);
+			}
+			this.isCategoryModalOpen = false;
+			this.editingCategory = null;
+			return true;
+		} catch (err: any) {
+			toast.error(err.message || 'Gagal menyimpan kategori menu.');
+			return false;
+		}
+	}
+
+	async deleteCategory(cat: MenuCategory): Promise<boolean> {
+		if ((cat.item_count || 0) > 0) {
+			toast.error(`Kategori "${cat.name}" masih digunakan oleh ${cat.item_count} menu siap jual dan tidak dapat dihapus.`);
+			return false;
+		}
+
+		if (!confirm(`Apakah Anda yakin ingin menghapus kategori menu "${cat.name}"?`)) {
+			return false;
+		}
+
+		try {
+			await menuService.deleteCategory(cat.id);
+			this.categories = this.categories.filter((c) => c.id !== cat.id);
+			toast.success(`Kategori menu "${cat.name}" berhasil dihapus.`);
+			return true;
+		} catch (err: any) {
+			toast.error(err.message || 'Gagal menghapus kategori menu.');
+			return false;
 		}
 	}
 

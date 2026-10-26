@@ -7,7 +7,7 @@ import { router } from '../engine/router.js';
 import { clock } from '../engine/clock.js';
 import { ApiErrors } from '../../../contract/errors.js';
 import { getCurrentMockUser } from './auth.js';
-import { mockStockItems } from './catalog.js';
+import { mockStockItems, setRecipeCountGetter } from './catalog.js';
 
 import { calculateChannelPrice } from '../../../../domain/pricing.js';
 import {
@@ -1276,6 +1276,13 @@ export let mockMenuAvailability: MenuAvailability[] = [
 // 9. Registrasi Mock Handlers Router
 // ============================================================================
 export function registerMenuHandlers(): void {
+	// Sinkronisasi dinamis jumlah formula resep yang menggunakan setiap bahan baku (AC-03.5)
+	setRecipeCountGetter((stockItemId: string) => {
+		return mockRecipes.filter((r) =>
+			r.ingredients.some((ing) => ing.stock_item_id === stockItemId)
+		).length;
+	});
+
 	// --------------------------------------------------------------------------
 	// 9.1 Menu Items & Varian
 	// --------------------------------------------------------------------------
@@ -1410,7 +1417,112 @@ export function registerMenuHandlers(): void {
 	});
 
 	router.register('GET', '/api/v1/menu-categories', async () => {
-		return { data: mockMenuCategories };
+		const categoriesWithCount = mockMenuCategories.map((c) => ({
+			...c,
+			item_count: mockMenuItems.filter((m) => m.category_id === c.id).length
+		})).sort((a, b) => a.sort_order - b.sort_order);
+		return { data: categoriesWithCount };
+	});
+
+	router.register('POST', '/api/v1/menu-categories', async (ctx) => {
+		const currentUser = getCurrentMockUser();
+		if (currentUser && (currentUser.role === 'store_manager' || currentUser.role === 'finance')) {
+			throw ApiErrors.forbidden('Peran Anda tidak memiliki hak akses untuk menambah kategori menu.');
+		}
+
+		const body = ctx.req.body as Partial<MenuCategory>;
+		if (!body.name || !body.code) {
+			throw ApiErrors.validationError([
+				{ field: 'name', code: 'required', message: 'Nama dan kode kategori menu wajib diisi.' }
+			], 'Nama dan kode kategori menu wajib diisi.');
+		}
+
+		const existing = mockMenuCategories.find((c) => c.code.toLowerCase() === body.code?.toLowerCase());
+		if (existing) {
+			throw ApiErrors.conflict(`Kode kategori menu "${body.code}" sudah digunakan.`);
+		}
+
+		const newCat: MenuCategory = {
+			id: `cat-m-${Date.now()}`,
+			name: body.name.trim(),
+			code: body.code.trim().toUpperCase(),
+			sort_order: Number(body.sort_order) || (mockMenuCategories.length + 1),
+			is_active: body.is_active !== undefined ? Boolean(body.is_active) : true,
+			created_at: clock.nowIso(),
+			updated_at: clock.nowIso()
+		};
+
+		mockMenuCategories.push(newCat);
+		return { data: newCat };
+	});
+
+	router.register('PUT', '/api/v1/menu-categories/:id', async (ctx) => {
+		const currentUser = getCurrentMockUser();
+		if (currentUser && (currentUser.role === 'store_manager' || currentUser.role === 'finance')) {
+			throw ApiErrors.forbidden('Peran Anda tidak memiliki hak akses untuk mengubah kategori menu.');
+		}
+
+		const index = mockMenuCategories.findIndex((c) => c.id === ctx.params.id);
+		if (index === -1) {
+			throw ApiErrors.notFound(`Kategori menu dengan ID "${ctx.params.id}" tidak ditemukan.`);
+		}
+
+		const body = ctx.req.body as Partial<MenuCategory>;
+		const existing = mockMenuCategories[index];
+
+		if (body.code && body.code.toLowerCase() !== existing.code.toLowerCase()) {
+			const dup = mockMenuCategories.find(
+				(c) => c.id !== existing.id && c.code.toLowerCase() === body.code?.toLowerCase()
+			);
+			if (dup) {
+				throw ApiErrors.conflict(`Kode kategori menu "${body.code}" sudah digunakan.`);
+			}
+		}
+
+		const updated: MenuCategory = {
+			...existing,
+			name: body.name !== undefined ? body.name.trim() : existing.name,
+			code: body.code !== undefined ? body.code.trim().toUpperCase() : existing.code,
+			sort_order: body.sort_order !== undefined ? Number(body.sort_order) : existing.sort_order,
+			is_active: body.is_active !== undefined ? Boolean(body.is_active) : existing.is_active,
+			updated_at: clock.nowIso()
+		};
+
+		mockMenuCategories[index] = updated;
+
+		// Sinkronisasi category_name pada menu items jika nama berubah
+		if (updated.name !== existing.name) {
+			for (const item of mockMenuItems) {
+				if (item.category_id === updated.id) {
+					item.category_name = updated.name;
+				}
+			}
+		}
+
+		return { data: updated };
+	});
+
+	router.register('DELETE', '/api/v1/menu-categories/:id', async (ctx) => {
+		const currentUser = getCurrentMockUser();
+		if (currentUser && (currentUser.role === 'store_manager' || currentUser.role === 'finance')) {
+			throw ApiErrors.forbidden('Peran Anda tidak memiliki hak akses untuk menghapus kategori menu.');
+		}
+
+		const index = mockMenuCategories.findIndex((c) => c.id === ctx.params.id);
+		if (index === -1) {
+			throw ApiErrors.notFound(`Kategori menu dengan ID "${ctx.params.id}" tidak ditemukan.`);
+		}
+
+		const cat = mockMenuCategories[index];
+		const inUseCount = mockMenuItems.filter((m) => m.category_id === cat.id).length;
+		if (inUseCount > 0) {
+			throw ApiErrors.conflict(
+				`Kategori "${cat.name}" tidak dapat dihapus karena masih digunakan oleh ${inUseCount} menu siap jual.`
+			);
+		}
+
+		mockMenuCategories.splice(index, 1);
+		return { data: { success: true, id: ctx.params.id } };
 	});
 
 	// --------------------------------------------------------------------------
@@ -1639,7 +1751,7 @@ export function registerMenuHandlers(): void {
 					};
 				} else if (stockItem && stockItem.hq_ref_price) {
 					costMap[ing.stock_item_id] = {
-						unitCost: parseFloat(stockItem.hq_ref_price) / 1000,
+						unitCost: parseFloat(stockItem.hq_ref_price),
 						costSource: 'last_purchase_price'
 					};
 				} else {

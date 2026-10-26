@@ -110,10 +110,10 @@
 	{open}
 	title="Tambah Aturan Konversi Satuan"
 	subtitle="Tentukan rasio konversi otomatis antara dua satuan ukuran (AC-03.2)"
-	maxWidth="520px"
+	maxWidth="540px"
 	{onclose}
 >
-	<form id="conversion-form" onsubmit={handleSubmit} class="space-y-4">
+	<form id="conversion-form" onsubmit={handleSubmit} class="conversion-form-stack">
 		{#if errorMessage}
 			<div class="detail-notice-callout warning">
 				<Icon name="exclamation-triangle" size={18} />
@@ -188,3 +188,11 @@
 		</div>
 	{/snippet}
 </Modal>
+
+<style>
+	.conversion-form-stack {
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+	}
+</style>

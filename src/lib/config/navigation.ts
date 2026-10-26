@@ -171,13 +171,27 @@ export const NAVIGATION_CONFIG: NavSection[] = [
 		title: 'MASTER DATA',
 		items: [
 			{
+				id: 'materials',
+				title: 'Master Bahan',
+				href: '/materials',
+				icon: 'materials',
+				permission: 'catalog:read'
+			},
+			{
 				id: 'catalog',
-				title: 'Katalog & Resep',
-				href: '/catalog',
-				icon: 'catalog',
+				title: 'Menu & Resep',
+				href: '/menu',
+				icon: 'menu',
 				permission: 'catalog:read',
 				badgeKey: 'catalog.proposals_pending',
 				badgeVariant: 'info'
+			},
+			{
+				id: 'suppliers',
+				title: 'Supplier',
+				href: '/suppliers',
+				icon: 'suppliers',
+				permission: 'procurement:read'
 			},
 			{
 				id: 'outlets',
@@ -292,9 +306,15 @@ export const COMMAND_PALETTE_ITEMS: CommandSearchItem[] = [
 	{ title: 'Laporan Laba Rugi (P&L)', section: 'Laporan', href: '/reports#pnl', icon: 'chart-pie', tags: ['laba', 'rugi', 'omzet', 'ebitda'], permission: 'dashboard:view:gross_profit' },
 	{ title: 'Laporan Penjualan POS', section: 'Laporan', href: '/reports#sales', icon: 'chart-bar', tags: ['sales', 'item', 'terlaris', 'kasir'], permission: 'reports:read' },
 	{ title: 'Laporan Umur Hutang (Aging)', section: 'Laporan', href: '/reports#aging', icon: 'clock', tags: ['hutang', 'jatuh tempo', 'aging'], permission: 'payables:manage_bills' },
-	{ title: 'Katalog Bahan Baku', section: 'Master Data', href: '/catalog#items', icon: 'cube', tags: ['bahan', 'item', 'biji kopi', 'susu'], permission: 'catalog:read' },
-	{ title: 'Menu, Varian & Resep', section: 'Master Data', href: '/catalog#recipes', icon: 'book-open', tags: ['resep', 'formula', 'kopi susu'], permission: 'catalog:read' },
-	{ title: 'Usulan Menu Baru', section: 'Master Data', href: '/catalog#proposals', icon: 'light-bulb', tags: ['usulan', 'menu lokal', 'sm'], permission: 'catalog:read' },
+	{ title: 'Master Bahan Baku', section: 'Master Data', href: '/materials#items', icon: 'cube', tags: ['bahan', 'item', 'biji kopi', 'susu'], permission: 'catalog:read' },
+	{ title: 'Kategori Bahan Baku', section: 'Master Data', href: '/materials#categories', icon: 'tag', tags: ['kategori', 'klasifikasi'], permission: 'catalog:read' },
+	{ title: 'Satuan & Konversi', section: 'Master Data', href: '/materials#units', icon: 'scale', tags: ['satuan', 'konversi'], permission: 'catalog:read' },
+	{ title: 'Menu Siap Jual & Varian', section: 'Master Data', href: '/menu#menus', icon: 'book-open', tags: ['menu', 'varian', 'kopi susu'], permission: 'catalog:read' },
+	{ title: 'Formula Resep & HPP', section: 'Master Data', href: '/menu#recipes', icon: 'book-open', tags: ['resep', 'formula', 'bom', 'hpp'], permission: 'catalog:read' },
+	{ title: 'Modifier & Efek Resep', section: 'Master Data', href: '/menu#modifiers', icon: 'sparkles', tags: ['modifier', 'topping', 'sugar level'], permission: 'catalog:read' },
+	{ title: 'Penetapan Harga Channel', section: 'Master Data', href: '/menu#pricing', icon: 'calculator', tags: ['harga', 'channel', 'gofood', 'grabfood'], permission: 'catalog:read' },
+	{ title: 'Ketersediaan Menu Gerai', section: 'Master Data', href: '/menu#availability', icon: 'building-storefront', tags: ['ketersediaan', 'sold out', 'stok gerai'], permission: 'catalog:read' },
+	{ title: 'Direktori Supplier & Pemasok', section: 'Master Data', href: '/suppliers', icon: 'truck', tags: ['vendor', 'gudang pusat', 'supplier', 'pemasok'], permission: 'procurement:read' },
 	{ title: 'Daftar Outlet & Cabang', section: 'Master Data', href: '/outlets', icon: 'building-storefront', tags: ['outlet', 'cabang', 'toko'], permission: 'org:read' },
 	{ title: 'Pengaturan & Audit Trail', section: 'Sistem', href: '/settings', icon: 'cog-6-tooth', tags: ['pengaturan', 'fitur', 'audit log'], permission: 'settings:read' }
 ];

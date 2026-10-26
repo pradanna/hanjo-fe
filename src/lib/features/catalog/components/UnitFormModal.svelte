@@ -71,10 +71,10 @@
 	{open}
 	title="Tambah Satuan Ukuran Baru"
 	subtitle="Daftarkan satuan (UOM) baru untuk takaran bahan dan resep"
-	maxWidth="460px"
+	maxWidth="500px"
 	{onclose}
 >
-	<form id="unit-form" onsubmit={handleSubmit} class="space-y-4">
+	<form id="unit-form" onsubmit={handleSubmit} class="unit-form-stack">
 		{#if errorMessage}
 			<div class="detail-notice-callout warning">
 				<Icon name="exclamation-triangle" size={18} />
@@ -125,3 +125,11 @@
 		</div>
 	{/snippet}
 </Modal>
+
+<style>
+	.unit-form-stack {
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+	}
+</style>

@@ -850,9 +850,9 @@
 }
 
 .dash-tab-btn.active-primary {
-	background: var(--brand-primary);
-	color: #ffffff;
-	border-color: var(--brand-primary);
+	color: var(--pill-success-text, #34d399);
+	background: var(--pill-success-bg, rgba(16, 185, 129, 0.14));
+	border-color: var(--pill-success-border, rgba(16, 185, 129, 0.35));
 	box-shadow: 0 1px 4px var(--brand-primary-glow);
 }
 

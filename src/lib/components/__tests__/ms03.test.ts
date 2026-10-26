@@ -160,14 +160,14 @@ async function runTests() {
 	// -------------------------------------------------------------------------
 	console.log('\n▶ Uji 4: AC-03.3 Independensi Harga Referensi Pusat terhadap HPP & Saldo');
 
-	const hppTest = evaluateHqRefPriceImpact('240000.00', '260000.00', '240.00', '18500.0000');
+	const hppTest = evaluateHqRefPriceImpact('240.00', '260.00', '240.00', '18500.0000');
 	assert(hppTest.hppUnchanged, 'HPP bergerak tidak terpengaruh oleh perubahan hq_ref_price');
 	assert(hppTest.stockBalanceUnchanged, 'Saldo kuantitas fisik tidak berubah saat hq_ref_price diedit');
 	assert(hppTest.currentHpp === '240.00', 'Nilai HPP moving average tetap konsisten');
 
 	// Uji via Service: ubah hq_ref_price
-	const priceUpdate = await catalogService.updateItem('item-kop-01', { hq_ref_price: '255000.00' });
-	assert(priceUpdate.hq_ref_price === '255000.00', 'hq_ref_price berhasil diubah sebagai harga referensi');
+	const priceUpdate = await catalogService.updateItem('item-kop-01', { hq_ref_price: '255.00' });
+	assert(priceUpdate.hq_ref_price === '255.00', 'hq_ref_price berhasil diubah sebagai harga referensi');
 
 	// -------------------------------------------------------------------------
 	// 5. Kriteria Penerimaan AC-03.4: Wizard Impor CSV (200 baris, 5 galat)

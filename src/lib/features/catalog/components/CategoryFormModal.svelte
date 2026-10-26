@@ -65,10 +65,10 @@
 	{open}
 	title={category ? 'Ubah Kategori Bahan' : 'Tambah Kategori Baru'}
 	subtitle={category ? `Perbarui informasi kategori ${category.name}` : 'Buat pengelompokan baru untuk master bahan baku'}
-	maxWidth="480px"
+	maxWidth="520px"
 	{onclose}
 >
-	<form id="category-form" onsubmit={handleSubmit} class="space-y-4">
+	<form id="category-form" onsubmit={handleSubmit} class="category-form-stack">
 		{#if errorMessage}
 			<div class="detail-notice-callout warning">
 				<Icon name="exclamation-triangle" size={18} />
@@ -119,3 +119,11 @@
 		</div>
 	{/snippet}
 </Modal>
+
+<style>
+	.category-form-stack {
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+	}
+</style>

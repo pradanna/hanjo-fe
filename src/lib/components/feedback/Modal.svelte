@@ -7,6 +7,7 @@
 		subtitle?: string;
 		maxWidth?: string;
 		onclose?: () => void;
+		header?: Snippet;
 		children?: Snippet;
 		footer?: Snippet;
 	}
@@ -17,6 +18,7 @@
 		subtitle = '',
 		maxWidth = '520px',
 		onclose,
+		header,
 		children,
 		footer
 	}: Props = $props();
@@ -44,14 +46,18 @@
 		}}
 	>
 		<div class="modal-card" style="max-width: {maxWidth};">
-			{#if title}
+			{#if header || title}
 				<div class="modal-header">
-					<div class="modal-titles">
-						<h3 class="modal-title">{title}</h3>
-						{#if subtitle}
-							<p class="modal-subtitle">{subtitle}</p>
-						{/if}
-					</div>
+					{#if header}
+						{@render header()}
+					{:else}
+						<div class="modal-titles">
+							<h3 class="modal-title">{title}</h3>
+							{#if subtitle}
+								<p class="modal-subtitle">{subtitle}</p>
+							{/if}
+						</div>
+					{/if}
 					{#if onclose}
 						<button
 							type="button"
@@ -124,6 +130,7 @@
 		display: flex;
 		align-items: flex-start;
 		justify-content: space-between;
+		gap: 16px;
 		padding: 18px 24px;
 		border-bottom: 1px solid var(--border-panel);
 		background: var(--bg-panel-sub);

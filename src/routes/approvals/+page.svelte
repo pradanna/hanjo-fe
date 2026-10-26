@@ -290,12 +290,15 @@
 		font-weight: 600;
 		color: var(--text-muted);
 		border-radius: var(--radius-sm);
+		border: 1px solid transparent;
 		transition: all 0.15s;
 	}
 
 	.pill-btn.active {
-		background: var(--brand-primary);
-		color: #ffffff;
+		background: var(--pill-success-bg, rgba(16, 185, 129, 0.14));
+		color: var(--pill-success-text, #34d399);
+		border: 1px solid var(--pill-success-border, rgba(16, 185, 129, 0.35));
+		box-shadow: 0 2px 8px rgba(16, 185, 129, 0.12);
 	}
 
 	/* Requests */

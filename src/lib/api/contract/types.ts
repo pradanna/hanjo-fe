@@ -854,6 +854,7 @@ export interface MenuCategory {
   code: string;
   sort_order: number;
   is_active: boolean;
+  item_count?: number;
   created_at: string;
   updated_at: string;
 }

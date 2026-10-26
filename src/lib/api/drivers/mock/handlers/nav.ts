@@ -42,7 +42,7 @@ let mockNotifications: NotificationItem[] = [
 		message: 'Store Manager Outlet Senopati mengajukan resep baru: Avocado Cold Brew.',
 		type: 'info',
 		read: true,
-		link: '/catalog#proposals',
+		link: '/menu#recipes',
 		created_at: '2026-10-13T13:20:00.000Z'
 	}
 ];
@@ -297,7 +297,7 @@ const mockSearchEntities: SearchResultItem[] = [
 		type: 'recipe',
 		title: 'Hanjo Aren Latte (Iced)',
 		subtitle: 'Signature Coffee · HPP Estimasi: Rp 8.400 · Harga Jual: Rp 28.000',
-		href: '/catalog#recipes',
+		href: '/menu#recipes',
 		badge: 'Aktif',
 		tags: ['menu', 'resep', 'kopi', 'aren latte', 'minuman']
 	},
@@ -306,7 +306,7 @@ const mockSearchEntities: SearchResultItem[] = [
 		type: 'recipe',
 		title: 'Americano (Hot / Iced)',
 		subtitle: 'Classic Coffee · HPP Estimasi: Rp 4.200 · Harga Jual: Rp 22.000',
-		href: '/catalog#recipes',
+		href: '/menu#recipes',
 		badge: 'Aktif',
 		tags: ['menu', 'resep', 'americano', 'black coffee']
 	},
@@ -315,7 +315,7 @@ const mockSearchEntities: SearchResultItem[] = [
 		type: 'recipe',
 		title: 'Kyoto Matcha Latte',
 		subtitle: 'Non-Coffee · HPP Estimasi: Rp 9.500 · Harga Jual: Rp 32.000',
-		href: '/catalog#recipes',
+		href: '/menu#recipes',
 		badge: 'Aktif',
 		tags: ['menu', 'resep', 'matcha', 'latte', 'green tea']
 	},
@@ -361,7 +361,7 @@ const mockSearchEntities: SearchResultItem[] = [
 		type: 'supplier',
 		title: 'CV Sumber Pangan',
 		subtitle: 'Pemasok Bahan Segar & Dairy · Syarat Pembayaran: TOP 14 Hari',
-		href: '/catalog#suppliers',
+		href: '/suppliers',
 		badge: 'Aktif',
 		tags: ['supplier', 'pemasok', 'sumber pangan', 'fresh milk', 'vendor']
 	},
@@ -370,7 +370,7 @@ const mockSearchEntities: SearchResultItem[] = [
 		type: 'supplier',
 		title: 'PT Sukanda Djaya',
 		subtitle: 'Distributor Resmi Syrup & Powder · TOP 30 Hari',
-		href: '/catalog#suppliers',
+		href: '/suppliers',
 		badge: 'Aktif',
 		tags: ['supplier', 'pemasok', 'sukanda djaya', 'sirup', 'vendor']
 	}

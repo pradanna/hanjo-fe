@@ -9,7 +9,7 @@
 	import Input from '#lib/components/forms/Input.svelte';
 	import Select from '#lib/components/forms/Select.svelte';
 	import CurrencyInput from '#lib/components/forms/CurrencyInput.svelte';
-	import Checkbox from '#lib/components/forms/Checkbox.svelte';
+	import Radio from '#lib/components/forms/Radio.svelte';
 	import Textarea from '#lib/components/forms/Textarea.svelte';
 	import Button from '#lib/components/forms/Button.svelte';
 	import type { StockItem, ItemCategory, Unit, DecimalString } from '#lib/api/contract/types.js';
@@ -30,14 +30,25 @@
 	let code = $state('');
 	let category_id = $state('');
 	let base_unit_id = $state('');
-	let is_producible = $state(false);
-	let can_buy_external = $state(true);
+	type SourcingType = 'hq_warehouse' | 'external_buy' | 'in_house_prep';
+	let sourcingType = $state<SourcingType>('hq_warehouse');
 	let storage_temperature = $state<'ambient' | 'chilled' | 'frozen'>('ambient');
 	let hq_ref_code = $state('');
 	let hq_ref_price = $state<DecimalString>('0.00');
 	let description = $state('');
 	let isSubmitting = $state(false);
 	let errorMessage = $state<string | null>(null);
+
+	const isHqSourced = $derived(sourcingType === 'hq_warehouse');
+	const isInternalPrep = $derived(sourcingType === 'in_house_prep');
+
+	// Otomatis bersihkan kode & harga referensi pusat saat bukan bahan pasokan sentral HQ
+	$effect(() => {
+		if (!isHqSourced) {
+			hq_ref_code = '';
+			hq_ref_price = '0.00';
+		}
+	});
 
 	// Opsi dropdown terstandarisasi untuk Select.svelte
 	const categoryOptions = $derived(
@@ -62,6 +73,24 @@
 		{ value: 'frozen', label: 'Beku / Freezer (Frozen < -18°C)', subtitle: 'Daging, es batu, bahan beku' }
 	];
 
+	const sourcingOptions = [
+		{
+			value: 'hq_warehouse',
+			label: 'Pasokan Gudang Pusat HQ (Sentralisasi)',
+			description: 'Bahan mentah yang wajib dipasok secara sentral dari gudang logistik pusat (contoh: Roast Beans HQ, Cup Logo Sablon, Bubuk Matcha import).'
+		},
+		{
+			value: 'external_buy',
+			label: 'Pengadaan Langsung (Beli Luar / Direct PO)',
+			description: 'Bahan mentah yang diizinkan dibeli mandiri oleh gerai langsung ke supplier lokal via PO (contoh: Susu Segar Pasteurisasi, Es Batu, Buah Segar).'
+		},
+		{
+			value: 'in_house_prep',
+			label: 'Olahan Internal Gerai (Batch Prep / Semi-Finished)',
+			description: 'Bahan setengah jadi yang diracik sendiri oleh barista atau dapur di gerai (contoh: Cold Brew concentrate batch 24h, Sirup Gula Aren Pandan batch).'
+		}
+	];
+
 	// Sinkronisasi saat item prop berubah
 	$effect(() => {
 		if (item) {
@@ -69,8 +98,13 @@
 			code = item.code || '';
 			category_id = item.category_id || (categories[0]?.id || '');
 			base_unit_id = item.base_unit_id || (units[0]?.id || '');
-			is_producible = item.is_producible || false;
-			can_buy_external = item.can_buy_external ?? true;
+			if (item.is_producible) {
+				sourcingType = 'in_house_prep';
+			} else if (item.can_buy_external) {
+				sourcingType = 'external_buy';
+			} else {
+				sourcingType = 'hq_warehouse';
+			}
 			storage_temperature = item.storage_temperature || 'ambient';
 			hq_ref_code = item.hq_ref_code || '';
 			hq_ref_price = (item.hq_ref_price || '0.00') as DecimalString;
@@ -80,8 +114,7 @@
 			code = '';
 			category_id = categories[0]?.id || '';
 			base_unit_id = units[0]?.id || '';
-			is_producible = false;
-			can_buy_external = true;
+			sourcingType = 'hq_warehouse';
 			storage_temperature = 'ambient';
 			hq_ref_code = '';
 			hq_ref_price = '0.00';
@@ -104,6 +137,9 @@
 		isSubmitting = true;
 		errorMessage = null;
 
+		const is_producible = sourcingType === 'in_house_prep';
+		const can_buy_external = sourcingType === 'external_buy';
+
 		const success = await onsave({
 			name: name.trim(),
 			code: code.trim().toUpperCase(),
@@ -112,8 +148,8 @@
 			is_producible,
 			can_buy_external,
 			storage_temperature,
-			hq_ref_code: hq_ref_code.trim(),
-			hq_ref_price: hq_ref_price || '0.00',
+			hq_ref_code: isHqSourced ? hq_ref_code.trim() : '',
+			hq_ref_price: isHqSourced ? (hq_ref_price || '0.00') : '0.00',
 			description: description.trim()
 		});
 
@@ -128,10 +164,10 @@
 	{open}
 	title={item ? 'Ubah Bahan Baku' : 'Tambah Bahan Baku Baru'}
 	subtitle={item ? `Perbarui spesifikasi bahan SKU ${item.code}` : 'Daftarkan bahan baku baru ke dalam katalog pusat'}
-	maxWidth="640px"
+	maxWidth="960px"
 	{onclose}
 >
-	<form id="stock-item-form" onsubmit={handleSubmit} class="space-y-5">
+	<form id="stock-item-form" onsubmit={handleSubmit} class="space-y-4">
 		{#if errorMessage}
 			<div class="detail-notice-callout warning">
 				<Icon name="exclamation-triangle" size={18} />
@@ -139,104 +175,120 @@
 			</div>
 		{/if}
 
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-			<!-- Nama Bahan -->
-			<div class="md:col-span-2">
-				<Input
-					id="item-name"
-					label="Nama Bahan Baku"
-					placeholder="Contoh: Espresso Blend House Arabica"
-					bind:value={name}
-					required
-				/>
+		<div class="modal-form-two-col">
+			<!-- KOLOM 1 (KIRI): Asal / Metode Pasokan & Catatan Penggunaan -->
+			<div class="modal-col">
+				<div class="col-section-title">
+					<Icon name="building-office" size={16} />
+					<span>1. Metode Pasokan & Sifat Asal Bahan</span>
+				</div>
+
+				<div class="form-field-stack">
+					<div class="sourcing-panel">
+						<Radio
+							name="item-sourcing-type"
+							required
+							options={sourcingOptions}
+							bind:value={sourcingType}
+						/>
+					</div>
+
+					<!-- Deskripsi & Petunjuk Penggunaan -->
+					<div class="desc-panel">
+						<Textarea
+							id="item-desc"
+							label="Deskripsi / Petunjuk Penggunaan"
+							placeholder="Petunjuk perlakuan khusus, racikan olahan, atau catatan batch..."
+							bind:value={description}
+							rows={3}
+						/>
+					</div>
+				</div>
 			</div>
 
-			<!-- Kode Bahan (SKU) -->
-			<Input
-				id="item-code"
-				label="Kode Bahan / SKU"
-				placeholder="KOP-ESP-01"
-				bind:value={code}
-				disabled={!!item}
-				helperText={item ? 'Kode SKU tidak dapat diubah setelah terdaftar' : undefined}
-				required
-			/>
+			<!-- KOLOM 2 (KANAN): Identitas & Spesifikasi Inventaris Master -->
+			<div class="modal-col">
+				<div class="col-section-title">
+					<Icon name="cube" size={16} />
+					<span>2. Spesifikasi Master Inventaris</span>
+				</div>
 
-			<!-- Kategori -->
-			<Select
-				id="item-category"
-				label="Kategori Bahan"
-				bind:value={category_id}
-				options={categoryOptions}
-				placeholder="Pilih Kategori..."
-				required
-			/>
+				<div class="form-field-stack">
+					<!-- Nama Bahan -->
+					<Input
+						id="item-name"
+						label="Nama Bahan Baku"
+						placeholder="Contoh: Espresso Blend House Arabica"
+						bind:value={name}
+						required
+					/>
 
-			<!-- Satuan Dasar (Base Unit) -->
-			<Select
-				id="item-base-unit"
-				label="Satuan Dasar (Base Unit)"
-				bind:value={base_unit_id}
-				options={unitOptions}
-				disabled={!!item && item.has_stock_movements}
-				helperText={item && item.has_stock_movements ? 'Terkunci permanen: Bahan telah memiliki mutasi stok (AC-03.1)' : undefined}
-				placeholder="Pilih Satuan..."
-				required
-			/>
+					<!-- Kode SKU & Kategori -->
+					<div class="grid grid-cols-2 gap-4">
+						<Input
+							id="item-code"
+							label="Kode Bahan / SKU"
+							placeholder="KOP-ESP-01"
+							bind:value={code}
+							disabled={!!item}
+							helperText={item ? 'Kode SKU terkunci' : undefined}
+							required
+						/>
 
-			<!-- Suhu Penyimpanan -->
-			<Select
-				id="item-storage"
-				label="Suhu Penyimpanan"
-				bind:value={storage_temperature}
-				options={storageOptions}
-			/>
+						<Select
+							id="item-category"
+							label="Kategori Bahan"
+							bind:value={category_id}
+							options={categoryOptions}
+							placeholder="Pilih Kategori..."
+							required
+						/>
+					</div>
 
-			<!-- Kode Referensi HQ -->
-			<Input
-				id="item-hq-code"
-				label="Kode Referensi Pusat (HQ Ref Code)"
-				placeholder="HQ-ROAST-01"
-				bind:value={hq_ref_code}
-			/>
+					<!-- Satuan Dasar & Suhu Penyimpanan -->
+					<div class="grid grid-cols-2 gap-4">
+						<Select
+							id="item-base-unit"
+							label="Satuan Dasar (Base Unit)"
+							bind:value={base_unit_id}
+							options={unitOptions}
+							disabled={!!item && item.has_stock_movements}
+							helperText={item && item.has_stock_movements ? 'Terkunci: Ada mutasi' : undefined}
+							placeholder="Pilih Satuan..."
+							required
+						/>
 
-			<!-- Harga Referensi HQ -->
-			<CurrencyInput
-				id="item-hq-price"
-				label="Harga Referensi Pusat (HQ Ref Price)"
-				bind:value={hq_ref_price}
-				placeholder="0"
-				helperText="Murni referensi pusat (tidak mempengaruhi HPP/saldo)"
-			/>
+						<Select
+							id="item-storage"
+							label="Suhu Penyimpanan"
+							bind:value={storage_temperature}
+							options={storageOptions}
+						/>
+					</div>
+
+					{#if isHqSourced}
+						<!-- Kode Referensi HQ & Harga Referensi HQ (Khusus Pasokan Gudang Pusat HQ) -->
+						<div class="grid grid-cols-2 gap-4">
+							<Input
+								id="item-hq-code"
+								label="Kode Ref Pusat (HQ Code)"
+								placeholder="Contoh: HQ-ROAST-01"
+								bind:value={hq_ref_code}
+								helperText="Kode SKU logistik gudang pusat"
+							/>
+
+							<CurrencyInput
+								id="item-hq-price"
+								label="Harga Ref Pusat (HQ Price)"
+								bind:value={hq_ref_price}
+								placeholder="0"
+								helperText="Murni acuan harga logistik pusat"
+							/>
+						</div>
+					{/if}
+				</div>
+			</div>
 		</div>
-
-		<!-- Flag Checklist dengan Padding & Margin Lega (Invarian §2.7) -->
-		<div class="checklist-panel">
-			<Checkbox
-				id="chk-producible"
-				label="Bahan Olahan Outlet (Producible)"
-				description="Bahan ini diracik sendiri di outlet (contoh: Cold Brew batch, Sirup Gula Aren batch)"
-				bind:checked={is_producible}
-			/>
-
-			<div class="checklist-divider"></div>
-
-			<Checkbox
-				id="chk-external"
-				label="Boleh Pengadaan Langsung (Beli Luar)"
-				description="Outlet diizinkan menerbitkan PO pengadaan ke pemasok eksternal tanpa lewat gudang pusat"
-				bind:checked={can_buy_external}
-			/>
-		</div>
-
-		<!-- Deskripsi -->
-		<Textarea
-			id="item-desc"
-			label="Deskripsi / Catatan Penyimpanan"
-			placeholder="Petunjuk penggunaan atau perlakuan khusus..."
-			bind:value={description}
-			rows={3}
-		/>
 	</form>
 
 	{#snippet footer()}
@@ -258,21 +310,52 @@
 </Modal>
 
 <style>
-	.checklist-panel {
-		margin-top: 18px;
-		margin-bottom: 20px;
-		padding: 20px 22px;
-		background: var(--bg-panel-sub, #0f172a);
-		border: 1px solid var(--border-panel, rgba(255, 255, 255, 0.08));
-		border-radius: var(--radius-lg, 12px);
+	.modal-form-two-col {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 24px;
+	}
+
+	@media (min-width: 768px) {
+		.modal-form-two-col {
+			grid-template-columns: 1fr 1.12fr;
+			gap: 28px;
+			align-items: start;
+		}
+	}
+
+	.modal-col {
 		display: flex;
 		flex-direction: column;
 		gap: 16px;
 	}
 
-	.checklist-divider {
-		height: 1px;
-		width: 100%;
-		background: var(--border-subtle, rgba(255, 255, 255, 0.06));
+	.col-section-title {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		font-size: 13px;
+		font-weight: 700;
+		color: var(--text-main, #f8fafc);
+		padding-bottom: 8px;
+		border-bottom: 1px solid var(--border-panel, rgba(255, 255, 255, 0.08));
+	}
+
+	.form-field-stack {
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+	}
+
+	.sourcing-panel {
+		padding: 16px 18px;
+		background: var(--bg-panel-sub, #0f172a);
+		border: 1px solid var(--border-panel, rgba(255, 255, 255, 0.08));
+		border-radius: var(--radius-lg, 12px);
+	}
+
+	.desc-panel {
+		display: flex;
+		flex-direction: column;
 	}
 </style>

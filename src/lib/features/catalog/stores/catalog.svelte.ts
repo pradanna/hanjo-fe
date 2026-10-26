@@ -7,6 +7,7 @@
 
 import { catalogService, type CatalogFilterQuery } from '../../../services/catalog.service.js';
 import { supplierService, type SupplierFilterQuery } from '../../../services/supplier.service.js';
+import { getItemStockLevel } from '../../../domain/catalog.js';
 import { session } from '../../../auth/session.svelte.js';
 import { toast } from '../../../components/feedback/toast.svelte.js';
 import type {
@@ -37,11 +38,11 @@ export class CatalogStore {
 	conversions = $state<UnitConversion[]>([]);
 	suppliers = $state<Supplier[]>([]);
 
-	// Filter Bahan Baku
 	selectedCategoryFilter = $state<string>('all');
 	selectedProducibleFilter = $state<'all' | 'true' | 'false'>('all');
 	selectedExternalFilter = $state<'all' | 'true' | 'false'>('all');
 	selectedStatusFilter = $state<'all' | 'active' | 'archived'>('active');
+	selectedStockLevelFilter = $state<'all' | 'low_stock' | 'out_of_stock'>('all');
 	itemSearchQuery = $state<string>('');
 
 	// Detail & Edit Bahan
@@ -111,6 +112,9 @@ export class CatalogStore {
 		}
 		if (this.selectedStatusFilter !== 'all') {
 			list = list.filter((i) => i.status === this.selectedStatusFilter);
+		}
+		if (this.selectedStockLevelFilter !== 'all') {
+			list = list.filter((i) => getItemStockLevel(i) === this.selectedStockLevelFilter);
 		}
 		if (this.itemSearchQuery.trim()) {
 			const q = this.itemSearchQuery.toLowerCase();

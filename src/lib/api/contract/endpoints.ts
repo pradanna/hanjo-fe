@@ -77,6 +77,7 @@ export const Endpoints = {
 		ITEMS: '/api/v1/menu-items',
 		ITEM_DETAIL: (id: string) => `/api/v1/menu-items/${id}`,
 		CATEGORIES: '/api/v1/menu-categories',
+		CATEGORY_DETAIL: (id: string) => `/api/v1/menu-categories/${id}`,
 		VARIANTS: (id: string) => `/api/v1/menu-items/${id}/variants`,
 		MODIFIER_GROUPS: '/api/v1/modifier-groups',
 		MODIFIER_GROUP_DETAIL: (id: string) => `/api/v1/modifier-groups/${id}`,

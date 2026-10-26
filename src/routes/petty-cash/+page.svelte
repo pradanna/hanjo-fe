@@ -443,11 +443,15 @@
 		font-size: 12.5px;
 		font-weight: 600;
 		color: var(--text-muted);
+		border: 1px solid transparent;
+		transition: all 0.2s ease;
 	}
 
 	.tab-btn.active {
-		background: var(--brand-primary);
-		color: #ffffff;
+		background: var(--pill-success-bg, rgba(16, 185, 129, 0.14));
+		color: var(--pill-success-text, #34d399);
+		border: 1px solid var(--pill-success-border, rgba(16, 185, 129, 0.35));
+		box-shadow: 0 2px 10px rgba(16, 185, 129, 0.15);
 	}
 
 	/* Tables */

@@ -8,7 +8,7 @@
 	import Icon from '#lib/components/data/Icon.svelte';
 	import StatusBadge from '#lib/components/data/StatusBadge.svelte';
 	import { session } from '#lib/auth/session.svelte.js';
-	import { formatRupiah } from '#lib/utils/format.js';
+	import { formatRupiah, formatDate } from '#lib/utils/format.js';
 	import type { StockItem, StockItemCostHistory } from '#lib/api/contract/types.js';
 
 	interface Props {
@@ -80,36 +80,37 @@
 {#if item}
 	<Modal
 		{open}
-		title={item.name}
-		subtitle={`Detail Spesifikasi & Inventaris SKU ${item.code}`}
-		maxWidth="840px"
+		maxWidth="clamp(980px, 80vw, 1440px)"
 		{onclose}
 	>
-		<div class="detail-container">
-			<!-- Header Identity Card -->
-			<div class="detail-header-card {isItemOutOfStock ? 'header-out-of-stock' : isItemLowStock ? 'header-low-stock' : ''}">
+		{#snippet header()}
+			<div class="drawer-merged-header">
 				<div class="header-main-info">
-					<div class="header-badges-row">
+					<div class="header-title-and-badges">
+						<h3 class="modal-title">{item.name}</h3>
 						<span class="item-code-badge">{item.code}</span>
-						<StatusBadge status={item.status === 'active' ? 'active' : 'archived'} size="md" />
-						{#if !item.can_buy_external}
-							<span class="pill-badge pill-warning">Hanya Gudang HQ</span>
-						{:else}
-							<span class="pill-badge pill-success">Boleh Beli Luar</span>
-						{/if}
+						<StatusBadge status={item.status === 'active' ? 'active' : 'archived'} size="sm" />
 						{#if item.is_producible}
-							<span class="pill-badge pill-info">Bahan Olahan</span>
+							<span class="header-sourcing-pill pill-info">Bahan Olahan Gerai</span>
+						{:else if !item.can_buy_external}
+							<span class="header-sourcing-pill pill-warning">Pasokan Gudang HQ</span>
+						{:else}
+							<span class="header-sourcing-pill pill-success">Boleh Beli Luar</span>
 						{/if}
 					</div>
 
 					<div class="header-metadata-row">
 						<span class="meta-tag">
-							<Icon name="tag" size={14} />
+							<Icon name="tag" size={13} />
 							<span>{item.category_name || 'Umum'}</span>
 						</span>
 						<span class="meta-separator">&bull;</span>
 						<span class="meta-unit">
 							Satuan Dasar: <strong>{item.base_unit_symbol}</strong>
+						</span>
+						<span class="meta-separator">&bull;</span>
+						<span class="meta-unit font-mono">
+							SKU: <strong>{item.code}</strong>
 						</span>
 					</div>
 				</div>
@@ -120,122 +121,205 @@
 					<span class="price-sub">per {item.base_unit_symbol}</span>
 				</div>
 			</div>
+		{/snippet}
 
-			<!-- Sub Tabs: Segmented Navigation -->
-			<div class="detail-tabs-bar" role="tablist" aria-label="Tab Menu Detail Bahan">
-				<button
-					type="button"
-					role="tab"
-					aria-selected={activeTab === 'info'}
-					class="detail-tab-btn {activeTab === 'info' ? 'active' : ''}"
-					onclick={() => (activeTab = 'info')}
-				>
-					<Icon name="information-circle" size={15} />
-					<span>Ringkasan Info</span>
-				</button>
-				<button
-					type="button"
-					role="tab"
-					aria-selected={activeTab === 'stock'}
-					class="detail-tab-btn {activeTab === 'stock' ? 'active' : ''}"
-					onclick={() => (activeTab = 'stock')}
-				>
-					<Icon name="building-storefront" size={15} />
-					<span>Stok per Gerai</span>
-				</button>
-				<button
-					type="button"
-					role="tab"
-					aria-selected={activeTab === 'pricing'}
-					class="detail-tab-btn {activeTab === 'pricing' ? 'active' : ''}"
-					onclick={() => (activeTab = 'pricing')}
-				>
-					<Icon name="banknotes" size={15} />
-					<span>Riwayat Harga &amp; HPP</span>
-				</button>
-				<button
-					type="button"
-					role="tab"
-					aria-selected={activeTab === 'min_stock'}
-					class="detail-tab-btn {activeTab === 'min_stock' ? 'active' : ''}"
-					onclick={() => (activeTab = 'min_stock')}
-				>
-					<Icon name="adjustments-horizontal" size={15} />
-					<span>Batas Minimum Gerai</span>
-				</button>
-				<button
-					type="button"
-					role="tab"
-					aria-selected={activeTab === 'recipes'}
-					class="detail-tab-btn {activeTab === 'recipes' ? 'active' : ''}"
-					onclick={() => (activeTab = 'recipes')}
-				>
-					<Icon name="book-open" size={15} />
-					<span>Dipakai di Resep</span>
-					{#if (item.recipes_using_count || 0) > 0}
-						<span class="tab-count-badge">{item.recipes_using_count}</span>
-					{/if}
-				</button>
-			</div>
+		<div class="detail-container">
+			<!-- Unified Tabbed Section: Tabs Header & Tab Body merged into one card -->
+			<div class="detail-tabbed-container">
+				<div class="detail-tabs-header" role="tablist" aria-label="Tab Menu Detail Bahan">
+					<button
+						type="button"
+						role="tab"
+						aria-selected={activeTab === 'info'}
+						class="detail-tab-btn {activeTab === 'info' ? 'active' : ''}"
+						onclick={() => (activeTab = 'info')}
+					>
+						<Icon name="information-circle" size={15} />
+						<span>Ringkasan Info</span>
+					</button>
+					<button
+						type="button"
+						role="tab"
+						aria-selected={activeTab === 'stock'}
+						class="detail-tab-btn {activeTab === 'stock' ? 'active' : ''}"
+						onclick={() => (activeTab = 'stock')}
+					>
+						<Icon name="building-storefront" size={15} />
+						<span>Stok per Gerai</span>
+					</button>
+					<button
+						type="button"
+						role="tab"
+						aria-selected={activeTab === 'pricing'}
+						class="detail-tab-btn {activeTab === 'pricing' ? 'active' : ''}"
+						onclick={() => (activeTab = 'pricing')}
+					>
+						<Icon name="banknotes" size={15} />
+						<span>Riwayat Harga &amp; HPP</span>
+					</button>
+					<button
+						type="button"
+						role="tab"
+						aria-selected={activeTab === 'min_stock'}
+						class="detail-tab-btn {activeTab === 'min_stock' ? 'active' : ''}"
+						onclick={() => (activeTab = 'min_stock')}
+					>
+						<Icon name="adjustments-horizontal" size={15} />
+						<span>Batas Minimum Gerai</span>
+					</button>
+					<button
+						type="button"
+						role="tab"
+						aria-selected={activeTab === 'recipes'}
+						class="detail-tab-btn {activeTab === 'recipes' ? 'active' : ''}"
+						onclick={() => (activeTab = 'recipes')}
+					>
+						<Icon name="book-open" size={15} />
+						<span>Dipakai di Resep</span>
+						{#if (item.recipes_using_count || 0) > 0}
+							<span class="tab-count-badge">{item.recipes_using_count}</span>
+						{/if}
+					</button>
+				</div>
 
-			<!-- TAB CONTENT PANELS -->
-			<div class="detail-content-area">
-				<!-- TAB 1: RINGKASAN INFO -->
+				<!-- TAB CONTENT BODY (Seamlessly connected within the container) -->
+				<div class="detail-tab-body">
+				<!-- TAB 1: RINGKASAN INFO (DATA SHEET SPESIFIKASI MASTER) -->
 				{#if activeTab === 'info'}
-					<div class="info-grid">
-						<div class="info-tile">
-							<span class="info-tile-label">Suhu Penyimpanan</span>
-							<div class="info-tile-value">
-								<span class="pill-badge pill-info">
-									{item.storage_temperature === 'chilled' ? 'Dingin / Kulkas (2°C - 4°C)' : item.storage_temperature === 'frozen' ? 'Beku / Freezer (< -18°C)' : 'Suhu Ruang (Ambient)'}
-								</span>
+					<div class="spec-sheet-container">
+						<!-- Seksi 1: Spesifikasi Master & Karakteristik Fisik -->
+						<div class="spec-section">
+							<div class="spec-section-header">
+								<Icon name="cube" size={16} />
+								<span>Spesifikasi Master &amp; Karakteristik Fisik</span>
 							</div>
-						</div>
-
-						<div class="info-tile">
-							<span class="info-tile-label">Pengadaan Langsung (Beli Luar)</span>
-							<div class="info-tile-value">
-								{#if item.can_buy_external}
-									<span class="pill-badge pill-success">Diizinkan (Boleh PO Luar)</span>
-								{:else}
-									<span class="pill-badge pill-warning">Terkunci (Hanya Suplai Gudang Pusat)</span>
-								{/if}
-							</div>
-						</div>
-
-						<div class="info-tile">
-							<span class="info-tile-label">Bahan Olahan Gerai (BOM Batch)</span>
-							<div class="info-tile-value">
-								{#if item.is_producible}
-									<span class="pill-badge pill-info">Ya, diproduksi mandiri di gerai</span>
-								{:else}
-									<span class="pill-badge pill-neutral">Tidak (Bahan mentah siap pakai)</span>
-								{/if}
-							</div>
-						</div>
-
-						<div class="info-tile">
-							<span class="info-tile-label">Status Mutasi Stok</span>
-							<div class="info-tile-value">
-								{#if item.has_stock_movements}
-									<span class="pill-badge pill-warning">
-										<Icon name="lock-closed" size={13} />
-										<span>Sudah memiliki transaksi (Base Unit dikunci permanen)</span>
+							<div class="spec-grid">
+								<div class="spec-item">
+									<span class="spec-label">Kategori Bahan</span>
+									<span class="spec-value">{item.category_name || 'Umum'}</span>
+								</div>
+								<div class="spec-item">
+									<span class="spec-label">Satuan Dasar (Base Unit)</span>
+									<span class="spec-value font-mono font-semibold">{item.base_unit_symbol}</span>
+								</div>
+								<div class="spec-item">
+									<span class="spec-label">Suhu Penyimpanan</span>
+									<span class="spec-value">
+										{#if item.storage_temperature === 'chilled'}
+											Dingin / Kulkas (Chilled, 2°C &ndash; 4°C)
+										{:else if item.storage_temperature === 'frozen'}
+											Beku / Freezer (Frozen, &lt; -18°C)
+										{:else}
+											Suhu Ruang (Ambient, 20°C &ndash; 25°C)
+										{/if}
 									</span>
-								{:else}
-									<span class="pill-badge pill-success">
-										<Icon name="check-circle" size={13} />
-										<span>Belum ada transaksi (Boleh ubah Base Unit)</span>
+								</div>
+								<div class="spec-item">
+									<span class="spec-label">Integritas Satuan (Mutasi)</span>
+									<span class="spec-value {item.has_stock_movements ? 'text-amber-400' : 'text-emerald-400'}">
+										{#if item.has_stock_movements}
+											Terkunci &mdash; sudah memiliki transaksi mutasi stok
+										{:else}
+											Terbuka &mdash; belum ada transaksi mutasi
+										{/if}
 									</span>
-								{/if}
+								</div>
+								<div class="spec-item">
+									<span class="spec-label">Total Stok Fisik Konsolidasi</span>
+									<span class="spec-value font-mono font-semibold text-emerald-400">
+										{parseFloat(item.current_stock || '0').toLocaleString('id-ID')} {item.base_unit_symbol}
+									</span>
+								</div>
+								<div class="spec-item">
+									<span class="spec-label">Keterikatan Resep Menu</span>
+									<span class="spec-value">
+										{#if (item.recipes_using_count || 0) > 0}
+											Aktif digunakan di {item.recipes_using_count} resep menu
+										{:else}
+											Belum digunakan di formula resep
+										{/if}
+									</span>
+								</div>
 							</div>
 						</div>
 
-						<div class="info-tile col-span-2">
-							<span class="info-tile-label">Catatan &amp; Deskripsi Bahan</span>
-							<p class="description-text">
-								{item.description || 'Tidak ada catatan atau instruksi khusus untuk bahan baku ini.'}
-							</p>
+						<!-- Seksi 2: Metode Pasokan & Referensi Pengadaan -->
+						<div class="spec-section">
+							<div class="spec-section-header">
+								<Icon name="truck" size={16} />
+								<span>Metode Pasokan &amp; Referensi Pengadaan</span>
+							</div>
+							<div class="spec-grid">
+								<div class="spec-item">
+									<span class="spec-label">Metode Pasokan (Sourcing)</span>
+									<span class="spec-value">
+										{#if item.is_producible}
+											Olahan Internal Gerai (Batch Prep / Semi-Finished)
+										{:else if item.can_buy_external}
+											Pengadaan Langsung (Beli Luar / Direct PO ke Supplier Lokal)
+										{:else}
+											Pasokan Gudang Pusat HQ (Distribusi Sentral Logistik)
+										{/if}
+									</span>
+								</div>
+								<div class="spec-item">
+									<span class="spec-label">Kode Ref Pusat (HQ Code)</span>
+									<span class="spec-value font-mono">
+										{item.hq_ref_code ? item.hq_ref_code : '— (Tidak berlaku / Bukan HQ)'}
+									</span>
+								</div>
+								<div class="spec-item">
+									<span class="spec-label">Harga Acuan Pusat (HQ Price)</span>
+									<span class="spec-value font-mono font-semibold">
+										{#if item.hq_ref_price && parseFloat(item.hq_ref_price) > 0}
+											{formatRupiah(item.hq_ref_price)} <span class="text-xs text-[var(--text-muted)] font-normal">/ {item.base_unit_symbol}</span>
+										{:else}
+											— (Tidak ada harga pusat)
+										{/if}
+									</span>
+								</div>
+								<div class="spec-item">
+									<span class="spec-label">Harga Pembelian Terakhir</span>
+									<span class="spec-value font-mono font-semibold text-emerald-400">
+										{#if costHistory?.last_purchased_price}
+											{formatRupiah(costHistory.last_purchased_price)} <span class="text-xs text-[var(--text-muted)] font-normal">/ {item.base_unit_symbol}</span>
+										{:else}
+											— (Belum ada riwayat faktur)
+										{/if}
+									</span>
+								</div>
+							</div>
+						</div>
+
+						<!-- Seksi 3: Catatan & Petunjuk Penggunaan -->
+						<div class="spec-section">
+							<div class="spec-section-header">
+								<Icon name="document-text" size={16} />
+								<span>Catatan &amp; Petunjuk Penggunaan Bahan</span>
+							</div>
+							<div class="spec-desc-box">
+								<p class="spec-desc-text">
+									{item.description || 'Tidak ada catatan, petunjuk racikan, atau instruksi khusus untuk bahan baku ini.'}
+								</p>
+							</div>
+						</div>
+
+						<!-- Seksi 4: Audit & Metadata Sistem -->
+						<div class="spec-audit-strip">
+							<div class="audit-item">
+								<span class="audit-label">ID Sistem:</span>
+								<span class="audit-value font-mono">{item.id}</span>
+							</div>
+							<span class="audit-dot">&bull;</span>
+							<div class="audit-item">
+								<span class="audit-label">Dibuat:</span>
+								<span class="audit-value">{formatDate(item.created_at, true)}</span>
+							</div>
+							<span class="audit-dot">&bull;</span>
+							<div class="audit-item">
+								<span class="audit-label">Terakhir Diperbarui:</span>
+								<span class="audit-value">{formatDate(item.updated_at, true)}</span>
+							</div>
 						</div>
 					</div>
 
@@ -466,26 +550,23 @@
 							</div>
 						{/if}
 
-						<div class="recipes-list-card">
-							<span class="recipes-card-title">Resep Terkait yang Menggunakan Bahan Ini:</span>
-							<ul class="recipes-list">
-								{#if item.id.includes('kop')}
-									<li>Caffe Latte 12oz (Hot / Cold) &mdash; takaran: <strong>18g</strong> espresso per porsi</li>
-									<li>Americano Double Shot &mdash; takaran: <strong>18g</strong> espresso per porsi</li>
-									<li>Piccolo Latte 8oz &mdash; takaran: <strong>14g</strong> espresso per porsi</li>
-								{:else if item.id.includes('sus')}
-									<li>Caffe Latte 12oz &mdash; takaran: <strong>180ml</strong> susu fresh milk</li>
-									<li>Matcha Latte 12oz &mdash; takaran: <strong>160ml</strong> susu fresh milk</li>
-									<li>Cappuccino 8oz &mdash; takaran: <strong>120ml</strong> susu fresh milk</li>
-								{:else}
-									<li>Menu Signature Beverage Musiman &mdash; varian rasa khusus outlet</li>
-								{/if}
-							</ul>
+						<div class="recipes-action-container">
+							<a
+								href={`/menu?tab=recipes&ingredient_id=${encodeURIComponent(item.id)}&ingredient_name=${encodeURIComponent(item.name)}#recipes`}
+								class="btn btn-primary inline-flex items-center gap-2"
+								style="min-height: 42px; padding: 10px 20px; font-size: 13.5px;"
+								onclick={() => onclose()}
+							>
+								<Icon name="book-open" size={16} />
+								<span>Lihat dan Kelola Resep</span>
+								<Icon name="arrow-top-right-on-square" size={14} />
+							</a>
 						</div>
 					</div>
 				{/if}
 			</div>
 		</div>
+	</div>
 
 		{#snippet footer()}
 			<div class="detail-modal-footer">
@@ -540,118 +621,149 @@
 	.detail-container {
 		display: flex;
 		flex-direction: column;
-		gap: 20px;
 	}
 
-	/* Header Card */
-	.detail-header-card {
-		padding: 20px 24px;
-		border-radius: var(--radius-xl);
-		background: var(--bg-panel-sub);
-		border: 1px solid var(--border-panel);
+	/* Top Merged Header in Modal */
+	.drawer-merged-header {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: 24px;
-		transition: all 0.2s ease;
+		gap: 20px;
+		width: 100%;
+		padding-right: 8px;
 	}
 
-	.detail-header-card.header-low-stock {
-		background: rgba(245, 158, 11, 0.08);
-		border-color: rgba(245, 158, 11, 0.35);
-	}
-
-	.detail-header-card.header-out-of-stock {
-		background: rgba(239, 68, 68, 0.085);
-		border-color: rgba(239, 68, 68, 0.35);
-	}
-
-	@media (max-width: 640px) {
-		.detail-header-card {
+	@media (max-width: 768px) {
+		.drawer-merged-header {
 			flex-direction: column;
-			align-items: stretch;
+			align-items: flex-start;
+			gap: 14px;
 		}
 	}
 
 	.header-main-info {
 		display: flex;
 		flex-direction: column;
-		gap: 10px;
+		gap: 8px;
 		flex: 1;
 	}
 
-	.header-badges-row {
+	.header-title-and-badges {
 		display: flex;
 		align-items: center;
-		gap: 8px;
+		gap: 10px;
 		flex-wrap: wrap;
+	}
+
+	.drawer-merged-header .modal-title {
+		font-size: 17px;
+		font-weight: 700;
+		color: var(--text-main, #f8fafc);
+		margin: 0;
+	}
+
+	.header-sourcing-pill {
+		display: inline-flex;
+		align-items: center;
+		padding: 3px 10px;
+		border-radius: 9999px;
+		font-size: 11px;
+		font-weight: 600;
+		white-space: nowrap;
+	}
+
+	.header-sourcing-pill.pill-info {
+		background: rgba(56, 189, 248, 0.12);
+		color: #38bdf8;
+		border: 1px solid rgba(56, 189, 248, 0.25);
+	}
+
+	.header-sourcing-pill.pill-warning {
+		background: rgba(245, 158, 11, 0.12);
+		color: #fbbf24;
+		border: 1px solid rgba(245, 158, 11, 0.25);
+	}
+
+	.header-sourcing-pill.pill-success {
+		background: rgba(16, 185, 129, 0.12);
+		color: #34d399;
+		border: 1px solid rgba(16, 185, 129, 0.25);
 	}
 
 	.header-metadata-row {
 		display: flex;
 		align-items: center;
 		gap: 10px;
-		font-size: 13px;
-		color: var(--text-muted);
+		font-size: 12.5px;
+		color: var(--text-muted, #94a3b8);
 	}
 
 	.meta-tag {
 		display: inline-flex;
 		align-items: center;
-		gap: 6px;
+		gap: 5px;
 	}
 
 	.meta-separator {
-		color: var(--text-subtle);
+		color: var(--text-subtle, #64748b);
 		opacity: 0.6;
 	}
 
 	.meta-unit strong {
-		color: var(--text-main);
+		color: var(--text-main, #f8fafc);
 	}
 
 	.header-price-card {
-		padding: 12px 20px;
-		border-radius: var(--radius-lg);
-		background: var(--bg-panel);
-		border: 1px solid var(--border-panel);
+		padding: 8px 16px;
+		border-radius: var(--radius-lg, 10px);
+		background: var(--bg-panel, #1e293b);
+		border: 1px solid var(--border-panel, rgba(255, 255, 255, 0.08));
 		text-align: right;
 		display: flex;
 		flex-direction: column;
 		align-items: flex-end;
-		min-width: 150px;
+		flex-shrink: 0;
 	}
 
 	.price-label {
-		font-size: 11px;
+		font-size: 10px;
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
-		color: var(--text-subtle);
+		color: var(--text-subtle, #64748b);
 		font-weight: 600;
 	}
 
 	.price-value {
-		font-size: 18.5px;
+		font-size: 16.5px;
 		font-weight: 700;
-		color: var(--brand-primary);
+		color: var(--brand-primary, #10b981);
 		line-height: 1.25;
-		margin-top: 2px;
+		margin-top: 1px;
 	}
 
 	.price-sub {
-		font-size: 11.5px;
-		color: var(--text-muted);
+		font-size: 10.5px;
+		color: var(--text-muted, #94a3b8);
 	}
 
-	/* Segmented Tabs Navigation */
-	.detail-tabs-bar {
+	/* Unified Tabbed Panel (Merged Card: Tabs Bar + Content Body) */
+	.detail-tabbed-container {
+		background: var(--bg-panel-sub, #0f172a);
+		border: 1px solid var(--border-panel, rgba(255, 255, 255, 0.08));
+		border-radius: var(--radius-xl, 16px);
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+	}
+
+	.detail-tabs-header {
 		display: flex;
 		align-items: center;
 		gap: 6px;
-		padding: 6px;
-		background: var(--bg-panel-sub);
-		border: 1px solid var(--border-panel);
-		border-radius: var(--radius-xl);
+		padding: 8px 12px;
+		background: rgba(0, 0, 0, 0.25);
+		border-bottom: 1px solid var(--border-panel, rgba(255, 255, 255, 0.08));
 		overflow-x: auto;
 		-webkit-overflow-scrolling: touch;
 	}
@@ -660,12 +772,12 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 8px;
-		padding: 10px 16px;
-		min-height: 40px;
-		border-radius: var(--radius-lg);
+		padding: 10px 18px;
+		min-height: 42px;
+		border-radius: var(--radius-lg, 10px);
 		border: 1px solid transparent;
 		background: transparent;
-		color: var(--text-muted);
+		color: var(--text-muted, #94a3b8);
 		font-size: 13px;
 		font-weight: 600;
 		cursor: pointer;
@@ -675,15 +787,16 @@
 	}
 
 	.detail-tab-btn:hover {
-		color: var(--text-main);
-		background: var(--bg-panel-hover);
+		color: var(--text-main, #f8fafc);
+		background: rgba(255, 255, 255, 0.04);
 	}
 
 	.detail-tab-btn.active {
-		background: var(--bg-panel);
-		color: var(--brand-primary);
-		border-color: var(--border-panel);
-		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+		background: var(--bg-panel, #1e293b);
+		color: var(--brand-primary, #10b981);
+		border-color: rgba(16, 185, 129, 0.35);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+		font-weight: 700;
 	}
 
 	.tab-count-badge {
@@ -692,74 +805,135 @@
 		justify-content: center;
 		min-width: 22px;
 		height: 22px;
-		padding: 0 6px;
+		padding: 0 7px;
 		border-radius: 9999px;
 		font-size: 11px;
 		font-weight: 700;
 		background: rgba(16, 185, 129, 0.15);
-		color: var(--brand-primary);
+		color: var(--brand-primary, #10b981);
 	}
 
 	.detail-tab-btn.active .tab-count-badge {
-		background: var(--brand-primary);
+		background: var(--brand-primary, #10b981);
 		color: #ffffff;
 	}
 
-	/* Content Area */
-	.detail-content-area {
-		min-height: 240px;
+	/* Content Body inside the Tabbed Container */
+	.detail-tab-body {
+		padding: 24px;
+		min-height: 280px;
 	}
 
-	/* Info Grid (Tab 1) */
-	.info-grid {
-		display: grid;
-		grid-template-columns: repeat(2, 1fr);
-		gap: 14px;
-	}
-
-	@media (max-width: 640px) {
-		.info-grid {
-			grid-template-columns: 1fr;
-		}
-		.info-tile.col-span-2 {
-			grid-column: span 1;
-		}
-	}
-
-	.info-tile {
-		padding: 18px 20px;
-		border-radius: var(--radius-lg);
-		background: var(--bg-panel-sub);
-		border: 1px solid var(--border-panel);
+	/* SPECIFICATION DATA SHEET (Tab 1: Ringkasan Info) */
+	.spec-sheet-container {
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
+		gap: 20px;
 	}
 
-	.info-tile.col-span-2 {
-		grid-column: span 2;
+	.spec-section {
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+		padding: 18px 20px;
+		background: var(--bg-panel, #1e293b);
+		border: 1px solid var(--border-panel, rgba(255, 255, 255, 0.08));
+		border-radius: var(--radius-lg, 12px);
 	}
 
-	.info-tile-label {
-		font-size: 11.5px;
-		font-weight: 600;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		color: var(--text-subtle);
-	}
-
-	.info-tile-value {
+	.spec-section-header {
 		display: flex;
 		align-items: center;
 		gap: 8px;
-		min-height: 28px;
+		font-size: 12.5px;
+		font-weight: 700;
+		color: var(--text-main, #f8fafc);
+		padding-bottom: 10px;
+		border-bottom: 1px solid var(--border-panel, rgba(255, 255, 255, 0.08));
 	}
 
-	.description-text {
+	.spec-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 16px 24px;
+	}
+
+	@media (min-width: 900px) {
+		.spec-grid {
+			grid-template-columns: repeat(3, 1fr);
+		}
+	}
+
+	@media (max-width: 640px) {
+		.spec-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	.spec-item {
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
+	}
+
+	.spec-label {
+		font-size: 11px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--text-subtle, #64748b);
+	}
+
+	.spec-value {
+		font-size: 13.5px;
+		font-weight: 500;
+		color: var(--text-main, #f8fafc);
+		line-height: 1.45;
+	}
+
+	.spec-desc-box {
+		padding: 12px 16px;
+		background: var(--bg-panel-sub, #0f172a);
+		border: 1px solid var(--border-panel, rgba(255, 255, 255, 0.06));
+		border-radius: 8px;
+	}
+
+	.spec-desc-text {
 		font-size: 13px;
-		color: var(--text-main);
+		color: var(--text-main, #f8fafc);
 		line-height: 1.6;
 		margin: 0;
+	}
+
+	.spec-audit-strip {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 12px;
+		padding: 12px 18px;
+		background: rgba(0, 0, 0, 0.2);
+		border: 1px solid var(--border-panel, rgba(255, 255, 255, 0.06));
+		border-radius: var(--radius-lg, 10px);
+		font-size: 11.5px;
+		color: var(--text-subtle, #64748b);
+	}
+
+	.audit-item {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+	}
+
+	.audit-label {
+		color: var(--text-subtle, #64748b);
+	}
+
+	.audit-value {
+		color: var(--text-muted, #cbd5e1);
+	}
+
+	.audit-dot {
+		color: var(--border-panel, rgba(255, 255, 255, 0.15));
 	}
 
 	/* Tab Panel Stack */
@@ -810,32 +984,12 @@
 		margin: 6px 0 0;
 	}
 
-	/* Recipes Tab */
-	.recipes-list-card {
-		padding: 20px 24px;
-		border-radius: var(--radius-lg);
-		background: var(--bg-panel-sub);
-		border: 1px solid var(--border-panel);
+	/* Recipes Tab Action */
+	.recipes-action-container {
+		padding-top: 8px;
 		display: flex;
-		flex-direction: column;
-		gap: 12px;
-	}
-
-	.recipes-card-title {
-		font-size: 12.5px;
-		font-weight: 600;
-		color: var(--text-muted);
-	}
-
-	.recipes-list {
-		font-size: 13px;
-		color: var(--text-main);
-		line-height: 1.7;
-		padding-left: 20px;
-		margin: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
+		align-items: center;
+		justify-content: flex-start;
 	}
 
 	/* Modal Footer Layout */

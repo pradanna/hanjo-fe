@@ -40,9 +40,11 @@
 }
 
 .menu-tab-btn.active {
-	color: #ffffff;
-	background: var(--brand-primary, #6366f1);
-	box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+	color: var(--pill-success-text, #34d399);
+	background: var(--pill-success-bg, rgba(16, 185, 129, 0.14));
+	border: 1px solid var(--pill-success-border, rgba(16, 185, 129, 0.35));
+	font-weight: 700;
+	box-shadow: 0 2px 10px rgba(16, 185, 129, 0.15);
 }
 
 /* ==========================================================================

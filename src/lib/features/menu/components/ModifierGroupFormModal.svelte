@@ -133,7 +133,7 @@
 	maxWidth="800px"
 	onclose={() => (menuStore.isModifierModalOpen = false)}
 >
-	<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-5">
+	<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="form-field-stack">
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 			<div>
 				<label class="block text-xs font-semibold text-[var(--text-muted)] uppercase mb-1.5" for="mod-name">
