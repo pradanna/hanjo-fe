@@ -18,11 +18,14 @@
 
 	import Icon from '#lib/components/data/Icon.svelte';
 	import StatusBadge from '#lib/components/data/StatusBadge.svelte';
+	import CodeBadge from '#lib/components/data/CodeBadge.svelte';
 	import Skeleton from '#lib/components/feedback/Skeleton.svelte';
 	import EmptyState from '#lib/components/feedback/EmptyState.svelte';
 	import ErrorState from '#lib/components/feedback/ErrorState.svelte';
 	import Pagination from '#lib/components/data/Pagination.svelte';
 	import Drawer from '#lib/components/feedback/Drawer.svelte';
+	import ActionMenu from '#lib/components/feedback/ActionMenu.svelte';
+	import Select, { type SelectOption } from '#lib/components/forms/Select.svelte';
 
 	import MenuItemDetailDrawer from '#lib/features/menu/components/MenuItemDetailDrawer.svelte';
 	import MenuItemFormModal from '#lib/features/menu/components/MenuItemFormModal.svelte';
@@ -54,6 +57,74 @@
 	function getCategoryName(catId: string): string {
 		const cat = menuStore.categories.find((c) => c.id === catId);
 		return cat ? cat.name : catId;
+	}
+
+	// Filter Kategori Menu
+	let menuCategorySearch = $state('');
+	let menuCategoryStatusFilter = $state<'all' | 'active' | 'inactive'>('all');
+
+	const filteredMenuCategories = $derived.by(() => {
+		let list = menuStore.categories;
+		const q = menuCategorySearch.toLowerCase().trim();
+		if (q) {
+			list = list.filter((c) =>
+				c.name.toLowerCase().includes(q) ||
+				c.code.toLowerCase().includes(q)
+			);
+		}
+		if (menuCategoryStatusFilter === 'active') {
+			list = list.filter((c) => c.is_active);
+		} else if (menuCategoryStatusFilter === 'inactive') {
+			list = list.filter((c) => !c.is_active);
+		}
+		return list;
+	});
+
+	const menuCatStatusOptions = $derived<SelectOption[]>([
+		{ value: 'all', label: `Semua Status (${menuStore.categories.length})` },
+		{ value: 'active', label: 'Hanya Aktif' },
+		{ value: 'inactive', label: 'Hanya Nonaktif' }
+	]);
+
+	const recipeIngredientOptions = $derived<SelectOption[]>([
+		{ value: 'all', label: 'Semua Bahan Baku' },
+		...(catalogStore.items.length > 0 ? catalogStore.items : menuStore.stockItems).map((itm) => ({
+			value: itm.id,
+			label: `${itm.name} (${itm.code})`
+		}))
+	]);
+
+	const recipeScopeOptions: SelectOption[] = [
+		{ value: 'all', label: 'Semua Cakupan' },
+		{ value: 'standard', label: 'Standar Nasional' },
+		{ value: 'outlet_override', label: 'Override Gerai' }
+	];
+
+	const drawerMenuCategoryOptions = $derived<SelectOption[]>([
+		{ value: 'all', label: `Semua Kategori Menu (${menuStore.categories.length})` },
+		...menuStore.categories.map((c) => ({ value: c.id, label: c.name }))
+	]);
+
+	const drawerMenuScopeOptions: SelectOption[] = [
+		{ value: 'all', label: 'Semua Cakupan' },
+		{ value: 'all_outlets', label: 'Seluruh Gerai (Nasional)' },
+		{ value: 'outlet_set', label: 'Khusus Gerai Tertentu' }
+	];
+
+	const drawerMenuStatusOptions: SelectOption[] = [
+		{ value: 'active', label: 'Menu Aktif (Siap Jual)' },
+		{ value: 'archived', label: 'Diarsipkan (Nonaktif)' },
+		{ value: 'all', label: 'Semua Status' }
+	];
+
+	const availabilityOutletOptions: SelectOption[] = DEMO_OUTLETS.map((out) => ({
+		value: out.id,
+		label: `${out.name} (${out.code})`
+	}));
+
+	function viewMenusByCategory(catId: string) {
+		menuStore.selectedCategoryFilter = catId;
+		setTab('menus');
 	}
 
 	// Reset halaman saat filter menu berubah
@@ -391,9 +462,7 @@
 						<div>
 							<div class="flex items-start justify-between gap-3 mb-2">
 								<div>
-									<span class="text-xs font-mono px-2 py-0.5 rounded bg-[var(--bg-panel-sub)] border border-[var(--border-subtle)] text-[var(--text-muted)]">
-										{menu.code}
-									</span>
+									<CodeBadge code={menu.code} />
 									<h3 class="text-base font-bold text-[var(--text-main)] mt-1.5">{menu.name}</h3>
 								</div>
 								<StatusBadge status={menu.status === 'active' ? 'active' : 'inactive'} />
@@ -452,13 +521,13 @@
 							<th>Cakupan Gerai</th>
 							<th>Daftar Varian &amp; Harga Dasar</th>
 							<th class="text-center">Status</th>
-							<th class="w-28 text-right">Aksi</th>
+							<th class="w-16 text-right">Aksi</th>
 						</tr>
 					</thead>
 					<tbody>
 						{#each paginatedMenus as menu}
 							<tr>
-								<td class="font-mono text-xs font-bold text-[var(--text-muted)]">{menu.code}</td>
+								<td><CodeBadge code={menu.code} /></td>
 								<td>
 									<button
 										type="button"
@@ -489,13 +558,29 @@
 									<StatusBadge status={menu.status === 'active' ? 'active' : 'inactive'} />
 								</td>
 								<td class="text-right">
-									<button
-										type="button"
-										class="px-2.5 py-1 text-xs rounded bg-[var(--bg-panel-sub)] border border-[var(--border-subtle)] text-[var(--text-main)] hover:bg-[var(--bg-panel-hover)] transition"
-										onclick={() => menuStore.openMenuDetail(menu)}
-									>
-										Rincian
-									</button>
+									<div class="flex items-center justify-end">
+										<ActionMenu
+											items={[
+												{
+													label: 'Lihat Rincian & Resep',
+													icon: 'eye',
+													onclick: () => menuStore.openMenuDetail(menu)
+												},
+												...(canManageCatalog
+													? [
+															{
+																label: 'Ubah Data Menu',
+																icon: 'pencil-square',
+																onclick: () => {
+																	menuStore.editingMenuItem = menu;
+																	menuStore.isMenuModalOpen = true;
+																}
+															}
+														]
+													: [])
+											]}
+										/>
+									</div>
 								</td>
 							</tr>
 						{/each}
@@ -524,15 +609,56 @@
 
 	<!-- TAB 2: KATEGORI MENU SIAP JUAL -->
 	{:else if activeTab === 'categories'}
-		<div class="catalog-section-bar">
+		<div class="catalog-toolbar">
 			<div class="toolbar-left">
-				<div class="flex flex-col gap-0.5">
-					<h3 class="text-sm font-bold text-[var(--text-main)]">Master Kategori Menu Siap Jual</h3>
-					<span class="text-xs text-[var(--text-subtle)]">
-						Pengelompokan kategori untuk menu POS dan katalog penjualan ({menuStore.categories.length} kategori terdaftar)
-					</span>
+				<!-- Pencarian Kategori Menu -->
+				<div class="toolbar-search">
+					<Icon name="magnifying-glass" size={15} class="toolbar-search-icon" />
+					<input
+						type="text"
+						class="toolbar-search-input"
+						placeholder="Cari nama atau kode kategori menu..."
+						bind:value={menuCategorySearch}
+						id="input-search-menu-categories"
+					/>
+					{#if menuCategorySearch}
+						<button
+							type="button"
+							class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-[var(--text-subtle)] hover:text-[var(--text-main)]"
+							onclick={() => (menuCategorySearch = '')}
+							title="Hapus pencarian"
+						>
+							<Icon name="x-mark" size={14} />
+						</button>
+					{/if}
 				</div>
+
+				<!-- Filter Status Kategori -->
+				<div class="w-56">
+					<Select
+						id="filter-menu-cat-status"
+						bind:value={menuCategoryStatusFilter}
+						options={menuCatStatusOptions}
+						placeholder="Filter Status..."
+					/>
+				</div>
+
+				{#if menuCategorySearch || menuCategoryStatusFilter !== 'all'}
+					<button
+						type="button"
+						class="btn btn-secondary text-xs"
+						style="min-height: 36px; padding: 4px 12px;"
+						onclick={() => {
+							menuCategorySearch = '';
+							menuCategoryStatusFilter = 'all';
+						}}
+					>
+						<Icon name="x-mark" size={13} />
+						<span>Reset</span>
+					</button>
+				{/if}
 			</div>
+
 			<div class="toolbar-right">
 				{#if canManageCatalog}
 					<button
@@ -559,57 +685,78 @@
 						<th class="text-center">Jumlah Menu Terdaftar</th>
 						<th class="text-center">Status</th>
 						{#if canManageCatalog}
-							<th class="w-32 text-right">Aksi</th>
+							<th class="w-16 text-right">Aksi</th>
 						{/if}
 					</tr>
 				</thead>
 				<tbody>
-					{#if menuStore.categories.length === 0}
+					{#if filteredMenuCategories.length === 0}
 						<tr>
-							<td colspan={canManageCatalog ? 6 : 5} class="text-center py-8 text-xs text-[var(--text-subtle)]">
-								Belum ada kategori menu yang terdaftar.
+							<td colspan={canManageCatalog ? 6 : 5} class="text-center py-10">
+								<div class="flex flex-col items-center justify-center gap-2">
+									<Icon name="information-circle" size={24} />
+									<span class="text-sm font-semibold text-[var(--text-main)]">Tidak Ada Kategori Menu Ditemukan</span>
+									<span class="text-xs text-[var(--text-muted)]">Tidak ada kategori menu yang sesuai dengan kriteria pencarian atau status filter.</span>
+									{#if menuCategorySearch || menuCategoryStatusFilter !== 'all'}
+										<button
+											type="button"
+											class="btn btn-secondary text-xs mt-2"
+											onclick={() => {
+												menuCategorySearch = '';
+												menuCategoryStatusFilter = 'all';
+											}}
+										>
+											Reset Filter
+										</button>
+									{/if}
+								</div>
 							</td>
 						</tr>
 					{:else}
-						{#each menuStore.categories as cat}
+						{#each filteredMenuCategories as cat}
 							<tr>
 								<td class="text-center font-mono font-semibold text-[var(--text-muted)]">
 									#{cat.sort_order}
 								</td>
-								<td class="font-mono font-bold text-emerald-400">
-									{cat.code}
+								<td>
+									<CodeBadge code={cat.code} />
 								</td>
 								<td>
 									<strong class="text-[var(--text-main)]">{cat.name}</strong>
 								</td>
 								<td class="text-center">
-									<span class="pill-badge pill-info font-mono">
-										{cat.item_count || 0} menu
-									</span>
+									<button
+										type="button"
+										class="category-count-badge {(cat.item_count || 0) === 0 ? 'empty' : ''}"
+										onclick={() => viewMenusByCategory(cat.id)}
+										title={`Klik untuk melihat daftar menu dalam kategori ${cat.name}`}
+									>
+										<span>{cat.item_count || 0} menu</span>
+										<Icon name="arrow-top-right-on-square" size={11} />
+									</button>
 								</td>
 								<td class="text-center">
 									<StatusBadge status={cat.is_active ? 'active' : 'inactive'} />
 								</td>
 								{#if canManageCatalog}
 									<td class="text-right">
-										<div class="flex items-center justify-end gap-1.5">
-											<button
-												type="button"
-												class="px-2.5 py-1 text-xs rounded bg-[var(--bg-panel-sub)] border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition cursor-pointer"
-												onclick={() => menuStore.openEditCategory(cat)}
-												title="Ubah kategori"
-											>
-												Ubah
-											</button>
-											<button
-												type="button"
-												class="px-2.5 py-1 text-xs rounded bg-[var(--bg-panel-sub)] border border-[var(--border-subtle)] text-red-400/80 hover:text-red-300 hover:border-red-500/30 transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-												onclick={() => menuStore.deleteCategory(cat)}
-												disabled={(cat.item_count || 0) > 0}
-												title={(cat.item_count || 0) > 0 ? `Kategori digunakan oleh ${cat.item_count} menu, tidak dapat dihapus` : 'Hapus kategori'}
-											>
-												Hapus
-											</button>
+										<div class="flex items-center justify-end">
+											<ActionMenu
+												items={[
+													{
+														label: 'Ubah Kategori',
+														icon: 'pencil-square',
+														onclick: () => menuStore.openEditCategory(cat)
+													},
+													{
+														label: 'Hapus Kategori',
+														icon: 'trash',
+														variant: 'danger',
+														disabled: (cat.item_count || 0) > 0,
+														onclick: () => menuStore.deleteCategory(cat)
+													}
+												]}
+											/>
 										</div>
 									</td>
 								{/if}
@@ -676,34 +823,30 @@
 				</div>
 
 				<div class="flex items-center gap-2">
-					<label for="filter-recipe-ingredient" class="text-xs text-[var(--text-muted)] whitespace-nowrap font-medium">
+					<span class="text-xs text-[var(--text-muted)] whitespace-nowrap font-medium">
 						Filter Bahan:
-					</label>
-					<select
-						id="filter-recipe-ingredient"
-						class="bg-[var(--bg-panel)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-xs text-[var(--text-main)] focus:outline-none focus:border-emerald-500 max-w-[240px]"
-						bind:value={menuStore.recipeIngredientFilter}
-					>
-						<option value="all">Semua Bahan Baku</option>
-						{#each (catalogStore.items.length > 0 ? catalogStore.items : menuStore.stockItems) as itm}
-							<option value={itm.id}>{itm.name} ({itm.code})</option>
-						{/each}
-					</select>
+					</span>
+					<div class="w-64">
+						<Select
+							id="filter-recipe-ingredient"
+							bind:value={menuStore.recipeIngredientFilter}
+							options={recipeIngredientOptions}
+							searchable
+						/>
+					</div>
 				</div>
 
 				<div class="flex items-center gap-2">
-					<label for="filter-recipe-scope" class="text-xs text-[var(--text-muted)] whitespace-nowrap font-medium">
+					<span class="text-xs text-[var(--text-muted)] whitespace-nowrap font-medium">
 						Cakupan:
-					</label>
-					<select
-						id="filter-recipe-scope"
-						class="bg-[var(--bg-panel)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-xs text-[var(--text-main)] focus:outline-none focus:border-emerald-500"
-						bind:value={menuStore.recipeScopeFilter}
-					>
-						<option value="all">Semua Cakupan</option>
-						<option value="standard">Standar Nasional</option>
-						<option value="outlet_override">Override Gerai</option>
-					</select>
+					</span>
+					<div class="w-48">
+						<Select
+							id="filter-recipe-scope"
+							bind:value={menuStore.recipeScopeFilter}
+							options={recipeScopeOptions}
+						/>
+					</div>
 				</div>
 
 				{#if menuStore.recipeIngredientFilter !== 'all' || menuStore.recipeSearchQuery || menuStore.recipeScopeFilter !== 'all'}
@@ -730,9 +873,7 @@
 							{activeIngItem?.name || menuStore.recipeIngredientFilter}
 						</strong>
 						{#if activeIngItem?.code}
-							<span class="font-mono text-[11px] text-emerald-400/80 bg-emerald-500/15 px-2 py-0.5 rounded">
-								{activeIngItem.code}
-							</span>
+							<CodeBadge code={activeIngItem.code} />
 						{/if}
 					</div>
 					<div class="flex items-center gap-3">
@@ -761,22 +902,20 @@
 							<th>Bahan Baku BOM</th>
 							<th>Catatan Rilis</th>
 							<th>Status</th>
-							<th class="w-36 text-right">Aksi</th>
+							<th class="w-16 text-right">Aksi</th>
 						</tr>
 					</thead>
 					<tbody>
 						{#each menuStore.filteredRecipes as r}
 							<tr>
 								<td>
-									<div class="flex flex-col">
+									<div class="flex flex-col gap-1 items-start">
 										<strong class="text-[var(--text-main)]">{r.variant_name || r.variant_id}</strong>
-										<span class="text-[11px] text-[var(--text-subtle)] font-mono">{r.variant_id}</span>
+										<CodeBadge code={r.variant_id} variant="muted" />
 									</div>
 								</td>
 								<td>
-									<span class="px-2.5 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 font-mono text-xs font-bold">
-										v{r.version_number}
-									</span>
+									<CodeBadge code={'v' + r.version_number} variant="indigo" />
 								</td>
 								<td>
 									{#if r.scope_type === 'standard'}
@@ -822,38 +961,38 @@
 									{/if}
 								</td>
 								<td class="text-right">
-									<div class="flex items-center justify-end gap-1.5">
-										<button
-											type="button"
-											class="px-2.5 py-1 text-xs rounded bg-[var(--bg-panel-sub)] border border-[var(--border-subtle)] text-sky-400 hover:text-sky-300 transition"
-											onclick={() => {
-												menuStore.simVariantId = r.variant_id;
-												if (r.outlet_id) menuStore.simOutletId = r.outlet_id;
-												menuStore.refreshHppSimulation();
-											}}
-											title="Simulasikan HPP untuk varian ini"
-										>
-											Simulasi HPP
-										</button>
-										{#if canManageCatalog}
-											<button
-												type="button"
-												class="px-2.5 py-1 text-xs rounded bg-[var(--bg-panel-sub)] border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition"
-												onclick={() => {
-													menuStore.editingRecipe = {
-														variant_id: r.variant_id,
-														scope_type: r.scope_type,
-														outlet_id: r.outlet_id,
-														ingredients: [...r.ingredients],
-														notes: `Turunan dari v${r.version_number}`
-													};
-													menuStore.isRecipeModalOpen = true;
-												}}
-												title="Buat versi baru berdasarkan resep ini"
-											>
-												Revisi
-											</button>
-										{/if}
+									<div class="flex items-center justify-end">
+										<ActionMenu
+											items={[
+												{
+													label: 'Simulasi HPP',
+													icon: 'calculator',
+													onclick: () => {
+														menuStore.simVariantId = r.variant_id;
+														if (r.outlet_id) menuStore.simOutletId = r.outlet_id;
+														menuStore.refreshHppSimulation();
+													}
+												},
+												...(canManageCatalog
+													? [
+															{
+																label: 'Revisi & Rilis Versi Baru',
+																icon: 'arrow-path',
+																onclick: () => {
+																	menuStore.editingRecipe = {
+																		variant_id: r.variant_id,
+																		scope_type: r.scope_type,
+																		outlet_id: r.outlet_id,
+																		ingredients: [...r.ingredients],
+																		notes: `Turunan dari v${r.version_number}`
+																	};
+																	menuStore.isRecipeModalOpen = true;
+																}
+															}
+														]
+													: [])
+											]}
+										/>
 									</div>
 								</td>
 							</tr>
@@ -923,9 +1062,7 @@
 						<div>
 							<div class="flex items-start justify-between gap-3 mb-2">
 								<div>
-									<span class="text-xs font-mono px-2 py-0.5 rounded bg-[var(--bg-panel-sub)] border border-[var(--border-subtle)] text-[var(--text-muted)]">
-										{g.code}
-									</span>
+									<CodeBadge code={g.code} />
 									<h4 class="text-base font-bold text-[var(--text-main)] mt-1.5">{g.name}</h4>
 								</div>
 								{#if canManageCatalog}
@@ -1150,16 +1287,13 @@
 						</span>
 					</div>
 
-					<select
-						class="toolbar-select ml-2"
-						bind:value={menuStore.selectedOutletFilter}
-						onchange={() => menuStore.loadAll()}
-						aria-label="Pilih Gerai Ketersediaan"
-					>
-						{#each DEMO_OUTLETS as out}
-							<option value={out.id}>{out.name} ({out.code})</option>
-						{/each}
-					</select>
+					<div class="w-64 ml-2">
+						<Select
+							options={availabilityOutletOptions}
+							bind:value={menuStore.selectedOutletFilter}
+							onchange={() => menuStore.loadAll()}
+						/>
+					</div>
 				</div>
 
 				<div class="toolbar-right">
@@ -1258,44 +1392,32 @@
 		<div class="filter-drawer-field">
 			<label for="drawer-filter-menu-cat" class="filter-drawer-label">Kategori Menu</label>
 			<p class="filter-drawer-desc">Saring berdasarkan kelompok menu</p>
-			<select
+			<Select
 				id="drawer-filter-menu-cat"
-				class="filter-drawer-select"
 				bind:value={menuStore.selectedCategoryFilter}
-			>
-				<option value="all">Semua Kategori Menu ({menuStore.categories.length})</option>
-				{#each menuStore.categories as cat}
-					<option value={cat.id}>{cat.name}</option>
-				{/each}
-			</select>
+				options={drawerMenuCategoryOptions}
+				searchable
+			/>
 		</div>
 
 		<div class="filter-drawer-field">
 			<label for="drawer-filter-menu-scope" class="filter-drawer-label">Cakupan Distribusi Gerai</label>
 			<p class="filter-drawer-desc">Menu nasional vs menu eksklusif outlet tertentu</p>
-			<select
+			<Select
 				id="drawer-filter-menu-scope"
-				class="filter-drawer-select"
 				bind:value={menuStore.selectedScopeFilter}
-			>
-				<option value="all">Semua Cakupan</option>
-				<option value="all_outlets">Seluruh Gerai (Nasional)</option>
-				<option value="outlet_set">Khusus Gerai Tertentu</option>
-			</select>
+				options={drawerMenuScopeOptions}
+			/>
 		</div>
 
 		<div class="filter-drawer-field">
 			<label for="drawer-filter-menu-status" class="filter-drawer-label">Status Penjualan Menu</label>
 			<p class="filter-drawer-desc">Menu aktif siap order vs menu yang diarsipkan</p>
-			<select
+			<Select
 				id="drawer-filter-menu-status"
-				class="filter-drawer-select"
 				bind:value={menuStore.selectedStatusFilter}
-			>
-				<option value="active">Menu Aktif (Siap Jual)</option>
-				<option value="archived">Diarsipkan (Nonaktif)</option>
-				<option value="all">Semua Status</option>
-			</select>
+				options={drawerMenuStatusOptions}
+			/>
 		</div>
 	</div>
 

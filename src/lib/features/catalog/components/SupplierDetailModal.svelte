@@ -6,6 +6,7 @@
 	import Modal from '#lib/components/feedback/Modal.svelte';
 	import Icon from '#lib/components/data/Icon.svelte';
 	import StatusBadge from '#lib/components/data/StatusBadge.svelte';
+	import CodeBadge from '#lib/components/data/CodeBadge.svelte';
 	import type { Supplier } from '#lib/api/contract/types.js';
 
 	interface Props {
@@ -47,7 +48,7 @@
 			<!-- Header Badge Strip (AC-03.7) -->
 			<div class="p-4 rounded-xl bg-[var(--bg-panel-sub)] border border-[var(--border-subtle)] flex items-center justify-between gap-4">
 				<div class="flex items-center gap-2.5">
-					<span class="item-code-badge">{supplier.code}</span>
+					<CodeBadge code={supplier.code} />
 					{#if supplier.type === 'hq_warehouse'}
 						<span class="pill-badge pill-info flex items-center gap-1 font-bold">
 							<Icon name="building-office-2" size={13} />

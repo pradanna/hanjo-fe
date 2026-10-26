@@ -7,6 +7,7 @@
 	import Modal from '#lib/components/feedback/Modal.svelte';
 	import Icon from '#lib/components/data/Icon.svelte';
 	import StatusBadge from '#lib/components/data/StatusBadge.svelte';
+	import CodeBadge from '#lib/components/data/CodeBadge.svelte';
 	import { session } from '#lib/auth/session.svelte.js';
 	import { formatRupiah, formatDate } from '#lib/utils/format.js';
 	import type { StockItem, StockItemCostHistory } from '#lib/api/contract/types.js';
@@ -88,7 +89,7 @@
 				<div class="header-main-info">
 					<div class="header-title-and-badges">
 						<h3 class="modal-title">{item.name}</h3>
-						<span class="item-code-badge">{item.code}</span>
+						<CodeBadge code={item.code} />
 						<StatusBadge status={item.status === 'active' ? 'active' : 'archived'} size="sm" />
 						{#if item.is_producible}
 							<span class="header-sourcing-pill pill-info">Bahan Olahan Gerai</span>

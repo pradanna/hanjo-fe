@@ -7,6 +7,7 @@
 	import { formatRupiah } from '../../../utils/format.js';
 	import { session } from '../../../auth/session.svelte.js';
 	import Icon from '../../../components/data/Icon.svelte';
+	import CodeBadge from '../../../components/data/CodeBadge.svelte';
 	import Button from '../../../components/forms/Button.svelte';
 	import Modal from '../../../components/feedback/Modal.svelte';
 	import HppSimulationPanel from './HppSimulationPanel.svelte';
@@ -44,9 +45,7 @@
 					</div>
 					<div>
 						<div class="flex items-center gap-2">
-							<span class="font-mono text-xs px-2.5 py-1 rounded bg-[var(--bg-panel)] border border-[var(--border-subtle)] text-[var(--text-main)] font-semibold">
-								{currentItem.code}
-							</span>
+							<CodeBadge code={currentItem.code} />
 							<span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-medium">
 								{currentItem.status.toUpperCase()}
 							</span>

@@ -30,6 +30,7 @@ export { default as Can } from './wrappers/Can.svelte';
 
 // --- Data Presentation ---
 export { default as Badge } from './data/Badge.svelte';
+export { default as CodeBadge } from './data/CodeBadge.svelte';
 export { default as StatusBadge } from './data/StatusBadge.svelte';
 export { default as MetricCard } from './data/MetricCard.svelte';
 export { default as StatCard } from './data/MetricCard.svelte'; // Alias kompatibilitas
