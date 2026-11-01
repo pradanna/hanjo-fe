@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Icon from '#lib/components/data/Icon.svelte';
+
 	export interface MultiSelectOption {
 		value: string;
 		label: string;
@@ -116,7 +118,7 @@
 								aria-label="Hapus {opt.label}"
 								onclick={(e) => removeTag(opt.value, e)}
 							>
-								&times;
+								<Icon name="x-mark" size={12} />
 							</button>
 						</span>
 					{/each}
@@ -135,7 +137,7 @@
 							onchange?.([]);
 						}}
 					>
-						&times;
+						<Icon name="x-mark" size={14} />
 					</button>
 				{/if}
 				<svg
@@ -248,8 +250,8 @@
 		align-items: center;
 		justify-content: space-between;
 		padding: 6px 14px;
-		background: var(--bg-input, #ffffff);
-		border: 1px solid var(--border-input, rgba(255, 255, 255, 0.12));
+		background: var(--bg-input);
+		border: 1px solid var(--border-input);
 		border-radius: var(--radius-md, 8px);
 		cursor: pointer;
 		transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -257,22 +259,22 @@
 	}
 
 	.multiselect-trigger:hover:not(:disabled) {
-		border-color: var(--border-input-hover, rgba(255, 255, 255, 0.22));
+		border-color: var(--border-input-hover);
 	}
 
 	.multiselect-container.is-open .multiselect-trigger,
 	.multiselect-trigger:focus-within {
-		border-color: var(--brand-primary, #059669);
-		box-shadow: 0 0 0 3px var(--brand-primary-dim, rgba(5, 150, 105, 0.1));
+		border-color: var(--brand-primary);
+		box-shadow: 0 0 0 3px var(--brand-primary-dim);
 	}
 
 	.multiselect-container.has-error .multiselect-trigger {
-		border-color: var(--pill-danger-text, #dc2626);
-		background-color: var(--pill-danger-bg, #fef2f2);
+		border-color: var(--pill-danger-text);
+		background-color: var(--pill-danger-bg);
 	}
 
 	.multiselect-container.is-disabled .multiselect-trigger {
-		background-color: var(--bg-panel-sub, #f1f5f9);
+		background-color: var(--bg-panel-sub);
 		opacity: 0.65;
 		cursor: not-allowed;
 	}
@@ -280,61 +282,67 @@
 	.tags-container {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 4px;
+		gap: 6px;
 		align-items: center;
 		flex: 1;
 	}
 
 	.placeholder {
 		font-size: 13.5px;
-		color: var(--text-muted, #94a3b8);
+		color: var(--text-muted);
 	}
 
 	.tag {
 		display: inline-flex;
 		align-items: center;
-		gap: 4px;
-		background: #ecfdf5;
-		color: #059669;
-		border: 1px solid #a7f3d0;
-		padding: 2px 8px;
-		border-radius: 9999px;
+		gap: 6px;
+		background: var(--pill-success-bg);
+		color: var(--pill-success-text);
+		border: 1px solid var(--pill-success-border);
+		padding: 3px 10px;
+		border-radius: var(--radius-full, 9999px);
 		font-size: 12px;
-		font-weight: 600;
+		font-weight: 500;
+		white-space: nowrap;
 	}
 
 	.tag-remove {
 		background: none;
 		border: none;
 		cursor: pointer;
-		color: #059669;
-		font-size: 14px;
-		line-height: 1;
+		color: var(--pill-success-text);
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		padding: 0;
+		opacity: 0.8;
+		transition: opacity 0.15s ease;
 	}
 
 	.tag-remove:hover {
-		color: #047857;
+		opacity: 1;
 	}
 
 	.trigger-icons {
 		display: flex;
 		align-items: center;
 		gap: 6px;
-		color: var(--text-muted, #64748b);
+		color: var(--text-muted);
 	}
 
 	.clear-all {
 		background: none;
 		border: none;
-		color: var(--text-muted, #94a3b8);
-		font-size: 16px;
+		color: var(--text-muted);
 		cursor: pointer;
-		padding: 0 4px;
+		padding: 2px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 
 	.clear-all:hover {
-		color: var(--text-main, #0f172a);
+		color: var(--text-main);
 	}
 
 	.arrow-icon {
@@ -351,10 +359,10 @@
 		left: 0;
 		right: 0;
 		z-index: 50;
-		background: #ffffff;
-		border: 1px solid var(--border-panel, #e2e8f0);
+		background: var(--bg-panel);
+		border: 1px solid var(--border-panel);
 		border-radius: var(--radius-md, 8px);
-		box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+		box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.45), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
 		max-height: 240px;
 		display: flex;
 		flex-direction: column;
@@ -363,20 +371,23 @@
 
 	.search-box {
 		padding: 10px 14px;
-		border-bottom: 1px solid var(--border-panel, #e2e8f0);
+		border-bottom: 1px solid var(--border-panel);
+		background: var(--bg-panel-sub);
 	}
 
 	.search-input {
 		width: 100%;
 		padding: 8px 12px;
 		font-size: 12.5px;
-		border: 1px solid var(--border-panel, #e2e8f0);
+		background: var(--bg-input);
+		color: var(--text-main);
+		border: 1px solid var(--border-input);
 		border-radius: 6px;
 		outline: none;
 	}
 
 	.search-input:focus {
-		border-color: var(--brand-primary, #059669);
+		border-color: var(--brand-primary);
 	}
 
 	.options-list {
@@ -392,7 +403,7 @@
 		gap: 8px;
 		padding: 9px 14px;
 		font-size: 13px;
-		color: var(--text-main, #0f172a);
+		color: var(--text-main);
 		text-align: left;
 		background: none;
 		border: none;
@@ -401,11 +412,11 @@
 	}
 
 	.option-item:hover:not(:disabled) {
-		background-color: #f8fafc;
+		background-color: var(--bg-panel-hover);
 	}
 
 	.option-item.is-selected {
-		background-color: #f0fdf4;
+		background-color: var(--brand-primary-dim);
 		font-weight: 600;
 	}
 
@@ -417,17 +428,17 @@
 	.checkbox-indicator {
 		width: 16px;
 		height: 16px;
-		border: 1px solid var(--border-panel, #cbd5e1);
+		border: 1px solid var(--border-input);
 		border-radius: 4px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: #ffffff;
+		background: var(--bg-panel-sub);
 	}
 
 	.checkbox-indicator.checked {
-		background-color: var(--brand-primary, #059669);
-		border-color: var(--brand-primary, #059669);
+		background-color: var(--brand-primary);
+		border-color: var(--brand-primary);
 		color: #ffffff;
 	}
 
@@ -435,7 +446,7 @@
 		padding: 12px;
 		text-align: center;
 		font-size: 12.5px;
-		color: var(--text-muted, #94a3b8);
+		color: var(--text-muted);
 	}
 
 	.form-feedback {
@@ -444,11 +455,11 @@
 	}
 
 	.form-feedback.error {
-		color: var(--pill-danger-text, #dc2626);
+		color: var(--pill-danger-text);
 		font-weight: 500;
 	}
 
 	.form-feedback.helper {
-		color: var(--text-muted, #64748b);
+		color: var(--text-muted);
 	}
 </style>

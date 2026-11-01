@@ -455,7 +455,7 @@
 
 	.select-option-item:hover:not(:disabled),
 	.select-option-item.is-highlighted:not(:disabled) {
-		background-color: var(--bg-panel-sub, #f1f5f9);
+		background-color: var(--bg-panel-hover);
 	}
 
 	.select-option-item.is-selected {

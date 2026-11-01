@@ -23,7 +23,8 @@ import type {
 	Supplier,
 	StockItemCostHistory,
 	CsvImportPreview,
-	CsvImportCommitResult
+	CsvImportCommitResult,
+	CategoryCsvImportPreview
 } from '../../../contract/types.js';
 
 // ============================================================================
@@ -1505,7 +1506,7 @@ export function registerCatalogHandlers(): void {
 		}
 		const upperCode = (body.code || `CAT-${body.name.substring(0, 3)}`).toUpperCase().trim();
 		const newCat: ItemCategory = {
-			id: `cat-${Date.now()}`,
+			id: `cat-${clock.now().getTime()}`,
 			name: body.name.trim(),
 			code: upperCode,
 			description: body.description?.trim() || '',
@@ -1547,7 +1548,7 @@ export function registerCatalogHandlers(): void {
 			]);
 		}
 		const newUnit: Unit = {
-			id: `u-${body.symbol.toLowerCase().replace(/[^a-z0-9]/g, '')}-${Date.now()}`,
+			id: `u-${body.symbol.toLowerCase().replace(/[^a-z0-9]/g, '')}-${clock.now().getTime()}`,
 			name: body.name.trim(),
 			symbol: body.symbol.trim().toLowerCase(),
 			type: body.type || 'count',
@@ -1602,7 +1603,7 @@ export function registerCatalogHandlers(): void {
 		const toUnit = mockUnits.find((u) => u.id === body.to_unit_id);
 
 		const newConv: UnitConversion = {
-			id: `conv-${Date.now()}`,
+			id: `conv-${clock.now().getTime()}`,
 			from_unit_id: body.from_unit_id,
 			from_unit_symbol: fromUnit?.symbol || body.from_unit_id,
 			to_unit_id: body.to_unit_id,
@@ -1657,11 +1658,11 @@ export function registerCatalogHandlers(): void {
 	router.register('POST', '/api/v1/suppliers', async (ctx) => {
 		const body = (ctx.req.body || {}) as Partial<Supplier>;
 		if (!body.name?.trim()) {
-			throw ApiErrors.validationError([{ field: 'name', code: 'required', message: 'Nama pemasok wajib diisi' }]);
+			throw ApiErrors.validationError([{ field: 'name', code: 'required', message: 'Nama supplier wajib diisi' }]);
 		}
-		const upperCode = (body.code || `SUP-${Date.now().toString().slice(-4)}`).toUpperCase().trim();
+		const upperCode = (body.code || `SUP-${clock.now().getTime().toString().slice(-4)}`).toUpperCase().trim();
 		const newSupplier: Supplier = {
-			id: `sup-${Date.now()}`,
+			id: `sup-${clock.now().getTime()}`,
 			name: body.name.trim(),
 			code: upperCode,
 			type: body.type || 'external',
@@ -1684,7 +1685,7 @@ export function registerCatalogHandlers(): void {
 	router.register('GET', '/api/v1/suppliers/:id', async (ctx) => {
 		const supplier = mockSuppliers.find((s) => s.id === ctx.params.id);
 		if (!supplier) {
-			throw ApiErrors.notFound(`Pemasok "${ctx.params.id}" tidak ditemukan`);
+			throw ApiErrors.notFound(`Supplier "${ctx.params.id}" tidak ditemukan`);
 		}
 		return { data: supplier };
 	});
@@ -1692,7 +1693,7 @@ export function registerCatalogHandlers(): void {
 	router.register('PUT', '/api/v1/suppliers/:id', async (ctx) => {
 		const index = mockSuppliers.findIndex((s) => s.id === ctx.params.id);
 		if (index === -1) {
-			throw ApiErrors.notFound(`Pemasok "${ctx.params.id}" tidak ditemukan`);
+			throw ApiErrors.notFound(`Supplier "${ctx.params.id}" tidak ditemukan`);
 		}
 		const body = (ctx.req.body || {}) as Partial<Supplier>;
 		mockSuppliers[index] = {
@@ -1703,20 +1704,20 @@ export function registerCatalogHandlers(): void {
 		return { data: mockSuppliers[index] };
 	});
 
-	// Hapus Pemasok (AC-03.7: Gudang Pusat / Berelasi transaksi ditolak)
+	// Hapus Supplier (AC-03.7: Gudang Pusat / Berelasi transaksi ditolak)
 	router.register('DELETE', '/api/v1/suppliers/:id', async (ctx) => {
 		const index = mockSuppliers.findIndex((s) => s.id === ctx.params.id);
 		if (index === -1) {
-			throw ApiErrors.notFound(`Pemasok "${ctx.params.id}" tidak ditemukan`);
+			throw ApiErrors.notFound(`Supplier "${ctx.params.id}" tidak ditemukan`);
 		}
 		const sup = mockSuppliers[index];
 		if (sup.has_transactions) {
 			throw ApiErrors.conflict(
-				`Pemasok "${sup.name}" memiliki riwayat transaksi/pengadaan dan tidak dapat dihapus. Silakan ubah statusnya menjadi non-aktif.`
+				`Supplier "${sup.name}" memiliki riwayat transaksi/pengadaan dan tidak dapat dihapus. Silakan ubah statusnya menjadi non-aktif.`
 			);
 		}
 		mockSuppliers.splice(index, 1);
-		return { data: { success: true, message: 'Pemasok berhasil dihapus' } };
+		return { data: { success: true, message: 'Supplier berhasil dihapus' } };
 	});
 
 	// --------------------------------------------------------------------------
@@ -1816,7 +1817,7 @@ export function registerCatalogHandlers(): void {
 		const unit = mockUnits.find((u) => u.id === body.base_unit_id);
 
 		const newItem: StockItem = {
-			id: `item-${Date.now()}`,
+			id: `item-${clock.now().getTime()}`,
 			name: body.name.trim(),
 			code: upperCode,
 			category_id: body.category_id,
@@ -2123,6 +2124,98 @@ export function registerCatalogHandlers(): void {
 			updated_count: 5,
 			skipped_count: 5,
 			message: 'Impor CSV bahan selesai: 190 dibuat baru, 5 diperbarui, 5 baris galat dilewati.'
+		};
+		return { data: result };
+	});
+
+	// --------------------------------------------------------------------------
+	// 6.6 Wizard Impor CSV Kategori Bahan
+	// --------------------------------------------------------------------------
+	router.register('POST', '/api/v1/imports/categories/preview', async (ctx) => {
+		const preview: CategoryCsvImportPreview = {
+			total_rows: 10,
+			valid_rows: 9,
+			error_rows: 1,
+			categories_to_create: [
+				{
+					row_number: 1,
+					name: 'Sirup Artisanal Lokal',
+					code: 'CAT-SAL',
+					description: 'Sirup racikan artisan lokal buah tropis'
+				},
+				{
+					row_number: 2,
+					name: 'Alternatif Nabati',
+					code: 'CAT-NBT',
+					description: 'Oat milk, almond milk, dan soy dairy-free'
+				},
+				{
+					row_number: 3,
+					name: 'Biji Kopi Seasonal',
+					code: 'CAT-SSN',
+					description: 'Biji kopi varietas musiman limited run'
+				}
+			],
+			categories_to_update: [
+				{
+					row_number: 4,
+					id: 'cat-syrup',
+					name: 'Sirup & Pemanis Alami',
+					code: 'CAT-SRP',
+					description: 'Pembaruan deskripsi grup sirup dan madu murni'
+				}
+			],
+			errors: [
+				{
+					row_number: 10,
+					code: 'duplicate_code',
+					field: 'code',
+					message: 'Kode kategori "CAT-KOP" sudah digunakan oleh Kopi & Espresso',
+					raw_data: { Nama: 'Kopi Tambahan', Kode: 'CAT-KOP', Deskripsi: 'Duplikat kode' }
+				}
+			]
+		};
+		return { data: preview };
+	});
+
+	router.register('POST', '/api/v1/imports/categories/commit', async (ctx) => {
+		const newCats: ItemCategory[] = [
+			{
+				id: `cat-imported-1-${clock.now().getTime()}`,
+				name: 'Sirup Artisanal Lokal',
+				code: 'CAT-SAL',
+				description: 'Sirup racikan artisan lokal buah tropis',
+				item_count: 0,
+				created_at: clock.nowIso(),
+				updated_at: clock.nowIso()
+			},
+			{
+				id: `cat-imported-2-${clock.now().getTime()}`,
+				name: 'Alternatif Nabati',
+				code: 'CAT-NBT',
+				description: 'Oat milk, almond milk, dan soy dairy-free',
+				item_count: 0,
+				created_at: clock.nowIso(),
+				updated_at: clock.nowIso()
+			},
+			{
+				id: `cat-imported-3-${clock.now().getTime()}`,
+				name: 'Biji Kopi Seasonal',
+				code: 'CAT-SSN',
+				description: 'Biji kopi varietas musiman limited run',
+				item_count: 0,
+				created_at: clock.nowIso(),
+				updated_at: clock.nowIso()
+			}
+		];
+		mockCategories.push(...newCats);
+
+		const result: CsvImportCommitResult = {
+			success: true,
+			created_count: 3,
+			updated_count: 1,
+			skipped_count: 1,
+			message: 'Impor CSV kategori selesai: 3 dibuat baru, 1 diperbarui, 1 baris galat dilewati.'
 		};
 		return { data: result };
 	});

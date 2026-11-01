@@ -167,7 +167,7 @@
 	maxWidth="960px"
 	{onclose}
 >
-	<form id="stock-item-form" onsubmit={handleSubmit} class="space-y-4">
+	<form id="stock-item-form" onsubmit={handleSubmit} class="form-field-stack">
 		{#if errorMessage}
 			<div class="detail-notice-callout warning">
 				<Icon name="exclamation-triangle" size={18} />
@@ -249,7 +249,7 @@
 					<div class="grid grid-cols-2 gap-4">
 						<Select
 							id="item-base-unit"
-							label="Satuan Dasar (Base Unit)"
+							label="Satuan Dasar"
 							bind:value={base_unit_id}
 							options={unitOptions}
 							disabled={!!item && item.has_stock_movements}
@@ -267,11 +267,11 @@
 					</div>
 
 					{#if isHqSourced}
-						<!-- Kode Referensi HQ & Harga Referensi HQ (Khusus Pasokan Gudang Pusat HQ) -->
+						<!-- Kode Referensi Pusat & Harga Acuan Pusat (Khusus Pasokan Gudang Pusat) -->
 						<div class="grid grid-cols-2 gap-4">
 							<Input
 								id="item-hq-code"
-								label="Kode Ref Pusat (HQ Code)"
+								label="Kode Referensi Pusat"
 								placeholder="Contoh: HQ-ROAST-01"
 								bind:value={hq_ref_code}
 								helperText="Kode SKU logistik gudang pusat"
@@ -279,7 +279,7 @@
 
 							<CurrencyInput
 								id="item-hq-price"
-								label="Harga Ref Pusat (HQ Price)"
+								label="Harga Acuan Pusat"
 								bind:value={hq_ref_price}
 								placeholder="0"
 								helperText="Murni acuan harga logistik pusat"
@@ -292,7 +292,7 @@
 	</form>
 
 	{#snippet footer()}
-		<div class="flex items-center justify-end gap-3 w-full">
+		<div class="modal-footer-actions">
 			<Button variant="secondary" onclick={onclose} disabled={isSubmitting}>
 				Batal
 			</Button>
@@ -344,7 +344,17 @@
 	.form-field-stack {
 		display: flex;
 		flex-direction: column;
-		gap: 20px;
+		gap: 22px;
+	}
+
+	.modal-footer-actions {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 12px;
+		width: 100%;
+		margin-top: 22px;
+		padding-top: 18px;
 	}
 
 	.sourcing-panel {

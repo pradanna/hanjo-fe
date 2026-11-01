@@ -1,0 +1,9 @@
+Nama,SKU,Kategori,Satuan,Harga_Referensi,Suhu_Penyimpanan,Boleh_Beli_Luar,Bahan_Olahan
+"Biji Kopi House Blend 1kg",KOP-HBL-01,cat-coffee,kg,185000,room_temp,TRUE,FALSE
+"Susu UHT Fresh Full Cream 1L",SSU-UHT-01,cat-milk,l,21000,chilled,TRUE,FALSE
+"Sirup Vanilla Gourmet 750ml",SRP-VAN-01,cat-syrup,ml,145000,room_temp,TRUE,FALSE
+"Bubuk Matcha Ceremonial 500g",BBK-MTC-01,cat-powder,g,275000,room_temp,TRUE,FALSE
+"Daun Teh Earl Grey Premium",TEH-EGY-01,cat-tea,g,95000,room_temp,TRUE,FALSE
+"Grass Jelly Grass Grass 1kg",TPG-GRL-01,cat-topping,kg,38000,chilled,TRUE,FALSE
+"Paper Cup Hot 8oz Kraft",KMS-CUP-08,cat-packaging,pcs,850,room_temp,FALSE,FALSE
+"Espresso Base Olahan 2L",OLH-ESP-2L,cat-coffee,l,90000,chilled,FALSE,TRUE

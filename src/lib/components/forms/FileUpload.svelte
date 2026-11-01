@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Icon from '#lib/components/data/Icon.svelte';
 	import { ValidationMessages } from '../../config/validation_dictionary.js';
 
 	interface Props {
@@ -145,7 +146,7 @@
 						aria-label="Hapus berkas"
 						onclick={removeFile}
 					>
-						&times;
+						<Icon name="x-mark" size={16} />
 					</button>
 				{/if}
 			</div>
@@ -283,7 +284,7 @@
 		display: flex;
 		align-items: center;
 		gap: 12px;
-		background: #ffffff;
+		background: var(--bg-panel-sub, #ffffff);
 		border: 1px solid var(--border-panel, #e2e8f0);
 		border-radius: var(--radius-md, 8px);
 		padding: 8px 12px;
@@ -295,18 +296,18 @@
 		height: 44px;
 		object-fit: cover;
 		border-radius: 6px;
-		border: 1px solid #e2e8f0;
+		border: 1px solid var(--border-panel, #e2e8f0);
 	}
 
 	.doc-icon {
 		width: 44px;
 		height: 44px;
-		background: #f1f5f9;
+		background: var(--bg-panel-hover, #f1f5f9);
 		border-radius: 6px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		color: #475569;
+		color: var(--text-muted, #475569);
 	}
 
 	.file-info {

@@ -13,7 +13,8 @@ import { calculateChannelPrice } from '../../../../domain/pricing.js';
 import {
 	resolveRecipe,
 	validateRecipeOverlap,
-	applyModifierEffects
+	applyModifierEffects,
+	sortRecipesByActiveStatus
 } from '../../../../domain/recipe.js';
 import { calculateVariantHpp } from '../../../../domain/hpp.js';
 import {
@@ -27,6 +28,7 @@ import type {
 	MenuVariant,
 	ModifierGroup,
 	ModifierOption,
+	NotePreset,
 	Recipe,
 	RecipeIngredient,
 	ProductionRecipe,
@@ -287,6 +289,10 @@ export let mockModifierGroups: ModifierGroup[] = [
 				price_delta: '6000.00',
 				is_default: false,
 				sort_order: 2,
+				linked_stock_item_id: 'item-sus-02',
+				linked_stock_item_name: 'Susu Oat Milk Oatly Barista Edition',
+				stock_quantity: '150.0000',
+				stock_unit: 'ml',
 				recipe_effects: [
 					{
 						type: 'replace',
@@ -306,6 +312,10 @@ export let mockModifierGroups: ModifierGroup[] = [
 				price_delta: '7000.00',
 				is_default: false,
 				sort_order: 3,
+				linked_stock_item_id: 'item-sus-03',
+				linked_stock_item_name: 'Susu Almond Breeze Barista Blend',
+				stock_quantity: '150.0000',
+				stock_unit: 'ml',
 				recipe_effects: [
 					{
 						type: 'replace',
@@ -339,6 +349,10 @@ export let mockModifierGroups: ModifierGroup[] = [
 				price_delta: '3000.00',
 				is_default: false,
 				sort_order: 1,
+				linked_stock_item_id: 'item-kop-01',
+				linked_stock_item_name: 'Espresso Blend House Arabica-Robusta',
+				stock_quantity: '18.0000',
+				stock_unit: 'g',
 				recipe_effects: [
 					{
 						type: 'add',
@@ -357,6 +371,10 @@ export let mockModifierGroups: ModifierGroup[] = [
 				price_delta: '4000.00',
 				is_default: false,
 				sort_order: 2,
+				linked_stock_item_id: 'item-srp-01',
+				linked_stock_item_name: 'Sirup Vanilla Monin 700ml',
+				stock_quantity: '10.0000',
+				stock_unit: 'ml',
 				recipe_effects: [
 					{
 						type: 'add',
@@ -389,6 +407,10 @@ export let mockModifierGroups: ModifierGroup[] = [
 				price_delta: '4000.00',
 				is_default: false,
 				sort_order: 1,
+				linked_stock_item_id: 'item-boba-01',
+				linked_stock_item_name: 'Topping Boba Brown Sugar',
+				stock_quantity: '40.0000',
+				stock_unit: 'g',
 				recipe_effects: []
 			},
 			{
@@ -399,10 +421,32 @@ export let mockModifierGroups: ModifierGroup[] = [
 				price_delta: '4000.00',
 				is_default: false,
 				sort_order: 2,
+				linked_stock_item_id: 'item-jelly-01',
+				linked_stock_item_name: 'Coffee Jelly Cube',
+				stock_quantity: '40.0000',
+				stock_unit: 'g',
 				recipe_effects: []
 			}
 		]
 	}
+];
+
+// ============================================================================
+// 2.1 In-Memory State: Preset Catatan Dapur / Barista (Lapis 3: Rp 0, Tanpa Biaya)
+// ============================================================================
+export let mockNotePresets: NotePreset[] = [
+	{ id: 'np-1', category: 'beverage', name: 'Less Sugar (50%)', code: 'NOTE-LESS-SUG', sort_order: 1, is_active: true },
+	{ id: 'np-2', category: 'beverage', name: 'Normal Sugar (100%)', code: 'NOTE-NORM-SUG', sort_order: 2, is_active: true },
+	{ id: 'np-3', category: 'beverage', name: 'No Sugar (0%)', code: 'NOTE-NO-SUG', sort_order: 3, is_active: true },
+	{ id: 'np-4', category: 'beverage', name: 'Less Ice', code: 'NOTE-LESS-ICE', sort_order: 4, is_active: true },
+	{ id: 'np-5', category: 'beverage', name: 'No Ice', code: 'NOTE-NO-ICE', sort_order: 5, is_active: true },
+	{ id: 'np-6', category: 'beverage', name: 'Extra Hot', code: 'NOTE-EXTRA-HOT', sort_order: 6, is_active: true },
+	{ id: 'np-7', category: 'general', name: 'Tanpa Sedotan', code: 'NOTE-NO-STRAW', sort_order: 7, is_active: true },
+	{ id: 'np-8', category: 'food', name: 'Pedas', code: 'NOTE-PEDAS', sort_order: 8, is_active: true },
+	{ id: 'np-9', category: 'food', name: 'Sedang', code: 'NOTE-SEDANG', sort_order: 9, is_active: true },
+	{ id: 'np-10', category: 'food', name: 'Tidak Pedas', code: 'NOTE-TDK-PEDAS', sort_order: 10, is_active: true },
+	{ id: 'np-11', category: 'food', name: 'Pisah Sambal', code: 'NOTE-PISAH-SAMBAL', sort_order: 11, is_active: true },
+	{ id: 'np-12', category: 'food', name: 'Tanpa Bawang Goreng', code: 'NOTE-NO-ONION', sort_order: 12, is_active: true }
 ];
 
 // ============================================================================
@@ -945,6 +989,30 @@ export let mockRecipes: Recipe[] = [
 		]
 	},
 
+	// --- Hanjo Aren Latte Hot: Versi 1 (Aktif Standar) ---
+	{
+		id: 'rcp-aren-hot-v1',
+		variant_id: 'var-aren-hot',
+		variant_name: 'Hanjo Aren Latte - Hot',
+		menu_item_id: 'mnu-aren-latte',
+		menu_item_name: 'Hanjo Aren Latte Signature',
+		version_number: 1,
+		effective_from: '2026-01-01T00:00:00.000Z',
+		effective_until: undefined,
+		is_active: true,
+		scope_type: 'standard',
+		version: 1,
+		created_by: 'Gunawan (HQ Master Roaster)',
+		created_at: '2026-01-01T00:00:00.000Z',
+		notes: 'Formula sajian panas: 18g espresso blend, 180ml steamed fresh milk, 20ml aren murni (paper cup hot 8oz)',
+		ingredients: [
+			{ id: 'ing-arh1-1', stock_item_id: 'item-kop-01', stock_item_name: 'Espresso Blend House Arabica-Robusta', stock_item_code: 'KOP-ESP-01', quantity: '18.0000', serving_unit: 'g', waste_pct: '0.00' },
+			{ id: 'ing-arh1-2', stock_item_id: 'item-sus-01', stock_item_name: 'Susu Fresh Milk Greenfields Barista', stock_item_code: 'SUS-GRN-01', quantity: '180.0000', serving_unit: 'ml', waste_pct: '0.00' },
+			{ id: 'ing-arh1-3', stock_item_id: 'item-srp-04', stock_item_name: 'Gula Aren Cair Organik 1 Liter', stock_item_code: 'SRP-GLA-AREN', quantity: '20.0000', serving_unit: 'ml', waste_pct: '0.00' },
+			{ id: 'ing-arh1-4', stock_item_id: 'item-kms-01', stock_item_name: 'Paper Cup Hot 8oz Logo Jodi', stock_item_code: 'KMS-CUP-HOT8', quantity: '1.0000', serving_unit: 'pcs', waste_pct: '0.00' }
+		]
+	},
+
 	// --- Americano Iced: Versi 1 & 2 ---
 	{
 		id: 'rcp-ame-iced-v1',
@@ -1353,7 +1421,7 @@ export function registerMenuHandlers(): void {
 		}
 
 		const newItem: MenuItem = {
-			id: `mnu-${Date.now()}`,
+			id: `mnu-${clock.now().getTime()}`,
 			name: body.name,
 			code: body.code,
 			category_id: body.category_id,
@@ -1368,8 +1436,8 @@ export function registerMenuHandlers(): void {
 			available_until: body.available_until,
 			variants: body.variants || [
 				{
-					id: `var-${Date.now()}-1`,
-					menu_item_id: `mnu-${Date.now()}`,
+					id: `var-${clock.now().getTime()}-1`,
+					menu_item_id: `mnu-${clock.now().getTime()}`,
 					name: 'Standard',
 					code: `${body.code}-STD`,
 					sku: `${body.code}-STD`,
@@ -1443,7 +1511,7 @@ export function registerMenuHandlers(): void {
 		}
 
 		const newCat: MenuCategory = {
-			id: `cat-m-${Date.now()}`,
+			id: `cat-m-${clock.now().getTime()}`,
 			name: body.name.trim(),
 			code: body.code.trim().toUpperCase(),
 			sort_order: Number(body.sort_order) || (mockMenuCategories.length + 1),
@@ -1551,9 +1619,9 @@ export function registerMenuHandlers(): void {
 		}
 
 		const newGroup: ModifierGroup = {
-			id: `grp-${Date.now()}`,
+			id: `grp-${clock.now().getTime()}`,
 			name: body.name || 'Grup Modifier',
-			code: body.code || `GRP-${Date.now()}`,
+			code: body.code || `GRP-${clock.now().getTime()}`,
 			description: body.description || '',
 			min_select: body.min_select ?? 0,
 			max_select: body.max_select ?? 1,
@@ -1599,6 +1667,69 @@ export function registerMenuHandlers(): void {
 	});
 
 	// --------------------------------------------------------------------------
+	// 9.2B Preset Catatan Dapur / Barista (Lapis 3: Rp 0)
+	// --------------------------------------------------------------------------
+	router.register('GET', '/api/v1/note-presets', async (ctx) => {
+		const category = ctx.query.get('category');
+		let list = [...mockNotePresets];
+		if (category && category !== 'all') {
+			list = list.filter((p) => p.category === category);
+		}
+		return { data: list.sort((a, b) => a.sort_order - b.sort_order) };
+	});
+
+	router.register('POST', '/api/v1/note-presets', async (ctx) => {
+		const currentUser = getCurrentMockUser();
+		if (currentUser && (currentUser.role === 'store_manager' || currentUser.role === 'finance')) {
+			throw ApiErrors.forbidden('Peran Anda tidak memiliki hak akses untuk menambah preset catatan dapur.');
+		}
+		const body = ctx.req.body as Partial<NotePreset>;
+		if (!body.name || !body.name.trim()) {
+			throw ApiErrors.validationError([{ field: 'name', code: 'required', message: 'Nama preset catatan wajib diisi.' }]);
+		}
+		const newPreset: NotePreset = {
+			id: `np-${clock.now().getTime()}`,
+			name: body.name.trim(),
+			code: body.code?.trim().toUpperCase() || `NOTE-${clock.now().getTime()}`,
+			category: body.category || 'general',
+			sort_order: body.sort_order ?? (mockNotePresets.length + 1),
+			is_active: body.is_active ?? true,
+			created_at: clock.nowIso(),
+			updated_at: clock.nowIso()
+		};
+		mockNotePresets.push(newPreset);
+		return { data: newPreset };
+	});
+
+	router.register('PUT', '/api/v1/note-presets/:id', async (ctx) => {
+		const currentUser = getCurrentMockUser();
+		if (currentUser && (currentUser.role === 'store_manager' || currentUser.role === 'finance')) {
+			throw ApiErrors.forbidden('Peran Anda tidak memiliki hak akses untuk mengubah preset catatan dapur.');
+		}
+		const target = mockNotePresets.find((p) => p.id === ctx.params.id);
+		if (!target) throw ApiErrors.notFound(`Preset catatan "${ctx.params.id}" tidak ditemukan.`);
+		const body = ctx.req.body as Partial<NotePreset>;
+		if (body.name !== undefined) target.name = body.name.trim();
+		if (body.code !== undefined) target.code = body.code.trim().toUpperCase();
+		if (body.category !== undefined) target.category = body.category;
+		if (body.sort_order !== undefined) target.sort_order = body.sort_order;
+		if (body.is_active !== undefined) target.is_active = body.is_active;
+		target.updated_at = clock.nowIso();
+		return { data: target };
+	});
+
+	router.register('DELETE', '/api/v1/note-presets/:id', async (ctx) => {
+		const currentUser = getCurrentMockUser();
+		if (currentUser && (currentUser.role === 'store_manager' || currentUser.role === 'finance')) {
+			throw ApiErrors.forbidden('Peran Anda tidak memiliki hak akses untuk menghapus preset catatan dapur.');
+		}
+		const idx = mockNotePresets.findIndex((p) => p.id === ctx.params.id);
+		if (idx === -1) throw ApiErrors.notFound(`Preset catatan "${ctx.params.id}" tidak ditemukan.`);
+		mockNotePresets.splice(idx, 1);
+		return { data: { success: true } };
+	});
+
+	// --------------------------------------------------------------------------
 	// 9.3 Resep Berversi & Resolusi (§6.2)
 	// --------------------------------------------------------------------------
 	router.register('GET', '/api/v1/recipes', async (ctx) => {
@@ -1613,7 +1744,7 @@ export function registerMenuHandlers(): void {
 			list = list.filter((r) => r.scope_type === 'standard' || r.outlet_id === outletId);
 		}
 
-		return { data: list };
+		return { data: sortRecipesByActiveStatus(list) };
 	});
 
 	router.register('GET', '/api/v1/recipes/resolve', async (ctx) => {
@@ -1664,7 +1795,7 @@ export function registerMenuHandlers(): void {
 		const maxVersion = existingForVariant.reduce((max, r) => Math.max(max, r.version_number), 0);
 
 		const newRecipe: Recipe = {
-			id: `rcp-${Date.now()}`,
+			id: `rcp-${clock.now().getTime()}`,
 			variant_id: body.variant_id,
 			variant_name: body.variant_name,
 			menu_item_id: body.menu_item_id,
@@ -1739,6 +1870,8 @@ export function registerMenuHandlers(): void {
 				costMap[ing.stock_item_id] = { unitCost: 3, costSource: 'outlet_avg_cost' };
 			} else if (ing.stock_item_id === 'item-kms-03' || ing.stock_item_id === 'item-cup-16oz') {
 				costMap[ing.stock_item_id] = { unitCost: 600, costSource: 'outlet_avg_cost' };
+			} else if (ing.stock_item_id === 'item-kms-01' || ing.stock_item_id === 'item-cup-hot8') {
+				costMap[ing.stock_item_id] = { unitCost: 850, costSource: 'outlet_avg_cost' };
 			} else {
 				// Cari dari data mockStockItems
 				const stockItem = mockStockItems.find((s) => s.id === ing.stock_item_id);
@@ -1763,15 +1896,22 @@ export function registerMenuHandlers(): void {
 			}
 		}
 
-		// 5. Cari harga jual dasar
-		let sellingPrice = 28000;
+		// 5. Cari harga jual dasar & tambahkan delta modifier yang dipilih
+		let basePrice = 28000;
 		for (const m of mockMenuItems) {
 			const v = m.variants.find((vr) => vr.id === variantId);
 			if (v) {
-				sellingPrice = parseFloat(v.base_price) || 28000;
+				basePrice = parseFloat(v.base_price) || 28000;
 				break;
 			}
 		}
+
+		let modifierDelta = 0;
+		for (const opt of selectedOptions) {
+			modifierDelta += parseFloat(opt.price_delta) || 0;
+		}
+
+		const sellingPrice = basePrice + modifierDelta;
 
 		const result: HppPreviewResponse = calculateVariantHpp({
 			variantId,
@@ -1782,6 +1922,8 @@ export function registerMenuHandlers(): void {
 			recipeScope: recipe.scope_type,
 			ingredients: effectResult.effectiveIngredients,
 			costMap,
+			basePrice,
+			modifierDelta,
 			sellingPrice,
 			warnings: effectResult.warnings
 		});
@@ -1878,7 +2020,7 @@ export function registerMenuHandlers(): void {
 
 		const body = ctx.req.body as Partial<ChannelMarkup>;
 		const newMarkup: ChannelMarkup = {
-			id: `mk-${Date.now()}`,
+			id: `mk-${clock.now().getTime()}`,
 			channel_code: channel.code,
 			markup_pct: body.markup_pct || '5.00',
 			effective_from: body.effective_from || clock.nowIso(),

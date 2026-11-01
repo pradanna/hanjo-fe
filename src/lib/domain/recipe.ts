@@ -70,6 +70,39 @@ export function resolveRecipe(
 }
 
 /**
+ * Mengecek apakah resep berstatus aktif dan sedang berlaku (belum kedaluwarsa/historis).
+ */
+export function isRecipeActive(recipe: Recipe, atTime?: string | number): boolean {
+	if (!recipe.is_active) return false;
+	const targetTimestamp = atTime ? new Date(atTime).getTime() : Date.now();
+	const fromTime = new Date(recipe.effective_from).getTime();
+	if (!isNaN(fromTime) && targetTimestamp < fromTime) return false;
+
+	if (recipe.effective_until) {
+		const untilTime = new Date(recipe.effective_until).getTime();
+		if (!isNaN(untilTime) && targetTimestamp >= untilTime) return false;
+	}
+
+	return true;
+}
+
+/**
+ * Mengurutkan daftar resep:
+ * 1. Resep aktif berjalan berada di paling atas
+ * 2. Resep historis / tidak dipakai berada di bagian bawah
+ * 3. Dalam kelompok status yang sama, nomor versi lebih tinggi (terbaru) berada di atas
+ */
+export function sortRecipesByActiveStatus(recipes: Recipe[], atTime?: string | number): Recipe[] {
+	return [...recipes].sort((a, b) => {
+		const aActive = isRecipeActive(a, atTime);
+		const bActive = isRecipeActive(b, atTime);
+		if (aActive && !bActive) return -1;
+		if (!aActive && bActive) return 1;
+		return (b.version_number || 0) - (a.version_number || 0);
+	});
+}
+
+/**
  * Validasi pencegahan tumpang tindih periode aktif dua resep pada varian dan scope yang sama (AC-04.5).
  */
 export function validateRecipeOverlap(
@@ -270,3 +303,79 @@ export function applyModifierEffects(
 		warnings
 	};
 }
+
+export interface FormattedRecipeEffect {
+	type: 'replace' | 'add' | 'multiply';
+	badgeLabel: string;
+	detailText: string;
+	badgeClass: 'modifier-effect-replace' | 'modifier-effect-add' | 'modifier-effect-multiply' | 'modifier-effect-zero';
+}
+
+/**
+ * Format efek modifier resep menjadi representasi teks operasional yang ramah pengguna,
+ * menggantikan formula teknis/developer ("Kali (Multiply)", "Ganti (Replace)", "Tambah (Add)").
+ */
+export function formatRecipeEffect(eff: RecipeEffect): FormattedRecipeEffect {
+	if (eff.type === 'replace') {
+		const target = eff.target_stock_item_name || eff.target_stock_item_id || 'Bahan Standar';
+		const replacement = eff.replacement_stock_item_name || eff.replacement_stock_item_id;
+		return {
+			type: 'replace',
+			badgeLabel: 'Substitusi',
+			detailText: replacement ? `${target} ➔ ${replacement}` : `Ganti ke: ${target}`,
+			badgeClass: 'modifier-effect-replace'
+		};
+	}
+
+	if (eff.type === 'add') {
+		const qty = eff.added_quantity ? parseFloat(eff.added_quantity) : 0;
+		const unit = eff.serving_unit ? ` ${eff.serving_unit}` : '';
+		const target = eff.target_stock_item_name || eff.target_stock_item_id || 'Bahan Tambahan';
+		const qtyStr = qty > 0 ? `+${qty}${unit} ` : '+ ';
+		return {
+			type: 'add',
+			badgeLabel: 'Tambah',
+			detailText: `${qtyStr}${target}`,
+			badgeClass: 'modifier-effect-add'
+		};
+	}
+
+	// eff.type === 'multiply'
+	const mult = eff.multiplier !== undefined && eff.multiplier !== null ? parseFloat(eff.multiplier) : 1;
+	const target = eff.target_stock_item_name || eff.target_stock_item_id || 'Bahan Baku';
+
+	if (mult === 0 || isNaN(mult)) {
+		return {
+			type: 'multiply',
+			badgeLabel: 'Tanpa Bahan',
+			detailText: `0% (Tanpa ${target})`,
+			badgeClass: 'modifier-effect-zero'
+		};
+	}
+
+	if (mult < 1) {
+		return {
+			type: 'multiply',
+			badgeLabel: 'Takaran',
+			detailText: `${Math.round(mult * 100)}% ${target}`,
+			badgeClass: 'modifier-effect-multiply'
+		};
+	}
+
+	if (mult > 1) {
+		return {
+			type: 'multiply',
+			badgeLabel: 'Porsi Ekstra',
+			detailText: `${mult}× ${target}`,
+			badgeClass: 'modifier-effect-multiply'
+		};
+	}
+
+	return {
+		type: 'multiply',
+		badgeLabel: 'Takaran',
+		detailText: `100% ${target}`,
+		badgeClass: 'modifier-effect-multiply'
+	};
+}
+

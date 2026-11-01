@@ -18,11 +18,25 @@
 	// Cart State
 	let cart = $state<CartItem[]>([]);
 
-	// Modal State: Product Customization
+	// Modal State: 3-Tier Product Customization Model
 	let selectedProduct = $state<Product | null>(null);
+	// Lapis 1: Varian (Wajib, Single-Select)
 	let selectedVariant = $state<Variant | null>(null);
-	let selectedModifiers = $state<Record<string, { optionName: string; price: number }>>({});
-	let itemNote = $state('');
+	// Lapis 2: Add-ons (Opsional, Multi-Select)
+	let selectedAddons = $state<Record<string, { optionName: string; price: number }>>({});
+	// Lapis 3: Preset Catatan Dapur & Teks Bebas (Bebas Biaya +Rp 0)
+	let selectedNotes = $state<string[]>([]);
+	let customNote = $state('');
+
+	// Derived calculation for current customization dialog
+	let currentCustomTotal = $derived.by(() => {
+		if (!selectedVariant) return 0;
+		let total = selectedVariant.price;
+		for (const addon of Object.values(selectedAddons)) {
+			total += addon.price;
+		}
+		return total;
+	});
 
 	// Modal State: Payment
 	let showPaymentModal = $state(false);
@@ -48,18 +62,38 @@
 	function openCustomization(product: Product) {
 		selectedProduct = product;
 		selectedVariant = product.variants[0] || null;
-		selectedModifiers = {};
-		itemNote = '';
+		selectedAddons = {};
+		selectedNotes = [];
+		customNote = '';
 	}
 
 	function closeCustomization() {
 		selectedProduct = null;
 		selectedVariant = null;
-		selectedModifiers = {};
+		selectedAddons = {};
+		selectedNotes = [];
+		customNote = '';
 	}
 
-	function selectModifier(groupId: string, optionName: string, price: number) {
-		selectedModifiers[groupId] = { optionName, price };
+	function toggleAddon(optionId: string, optionName: string, price: number) {
+		if (selectedAddons[optionId]) {
+			const updated = { ...selectedAddons };
+			delete updated[optionId];
+			selectedAddons = updated;
+		} else {
+			selectedAddons = {
+				...selectedAddons,
+				[optionId]: { optionName, price }
+			};
+		}
+	}
+
+	function toggleNotePreset(note: string) {
+		if (selectedNotes.includes(note)) {
+			selectedNotes = selectedNotes.filter((n) => n !== note);
+		} else {
+			selectedNotes = [...selectedNotes, note];
+		}
 	}
 
 	function addToCart() {
@@ -67,9 +101,9 @@
 
 		const appliedMods: CartModifier[] = [];
 		let modAdjustment = 0;
-		for (const [_, mod] of Object.entries(selectedModifiers)) {
+		for (const [_, mod] of Object.entries(selectedAddons)) {
 			appliedMods.push({
-				modifier_name: '',
+				modifier_name: 'Add-on',
 				option_name: mod.optionName,
 				price_adjustment: mod.price,
 			});
@@ -87,8 +121,9 @@
 			quantity: 1,
 			unit_price: unitPrice,
 			modifiers: appliedMods,
+			notes: [...selectedNotes],
 			subtotal: unitPrice,
-			note: itemNote,
+			note: customNote.trim(),
 		};
 
 		cart = [...cart, newItem];
@@ -205,7 +240,7 @@
 						<p class="product-desc">{product.description}</p>
 						<div class="product-footer">
 							<span class="product-price">{formatRupiah(product.variants[0]?.price || 0)}</span>
-							<span class="badge badge-primary">+ Modifiers</span>
+							<span class="badge badge-primary">+ Kustomisasi</span>
 						</div>
 					</div>
 				</div>
@@ -243,19 +278,34 @@
 							<span class="cart-item-price">{formatRupiah(item.subtotal)}</span>
 						</div>
 
-						{#if item.modifiers.length > 0}
-							<div class="cart-modifiers">
+						<!-- Lapis 2: Add-ons terdaftar -->
+						{#if item.modifiers && item.modifiers.length > 0}
+							<div class="cart-addons-list">
 								{#each item.modifiers as mod}
-									<span class="mod-pill">+ {mod.option_name}</span>
+									<div class="cart-addon-item">
+										<span class="addon-prefix">+</span>
+										<span class="addon-name">{mod.option_name}</span>
+										<span class="addon-price">+{formatRupiah(mod.price_adjustment)}</span>
+									</div>
 								{/each}
+							</div>
+						{/if}
+
+						<!-- Lapis 3: Instruksi & Catatan Dapur (+Rp 0) -->
+						{#if (item.notes && item.notes.length > 0) || item.note}
+							<div class="cart-notes-item">
+								<span class="notes-prefix">*</span>
+								<span class="notes-text">
+									Catatan: {[...(item.notes || []), item.note].filter(Boolean).join(', ')}
+								</span>
 							</div>
 						{/if}
 
 						<div class="cart-item-actions">
 							<div class="qty-control">
-								<button class="qty-btn" onclick={() => updateQty(item.id, -1)}>-</button>
+								<button class="qty-btn" onclick={() => updateQty(item.id, -1)} aria-label="Kurangi jumlah">-</button>
 								<span class="qty-val">{item.quantity}</span>
-								<button class="qty-btn" onclick={() => updateQty(item.id, 1)}>+</button>
+								<button class="qty-btn" onclick={() => updateQty(item.id, 1)} aria-label="Tambah jumlah">+</button>
 							</div>
 							<span class="per-unit">@ {formatRupiah(item.unit_price)}</span>
 						</div>
@@ -294,7 +344,7 @@
 	</aside>
 </div>
 
-<!-- Modal 1: Customization (Variant, Sugar, Extra Shot) -->
+<!-- Modal 1: 3-Tier Product Customization (Varian, Add-ons, Catatan Dapur) -->
 {#if selectedProduct}
 	<div
 		class="modal-backdrop"
@@ -309,69 +359,139 @@
 		<div class="custom-modal glass-card" role="region" aria-label="Dialog Kustomisasi Menu">
 			<div class="modal-head">
 				<div>
-					<h3 class="modal-title">{selectedProduct.name}</h3>
-					<span class="modal-sub">{selectedProduct.sku}</span>
+					<div class="flex items-center gap-2">
+						<h3 class="modal-title">{selectedProduct.name}</h3>
+						<span class="product-cat-pill">{selectedProduct.category_name || 'Menu'}</span>
+					</div>
+					<span class="modal-sub">{selectedProduct.sku} &bull; {selectedProduct.description}</span>
 				</div>
 				<button class="close-x" onclick={closeCustomization} aria-label="Tutup dialog">&times;</button>
 			</div>
 
-			<div class="modal-scroll">
-				<!-- Variant Selector -->
-				<div class="custom-group">
-					<span class="group-label">Pilih Ukuran / Varian</span>
-					<div class="option-chips">
+			<div class="modal-scroll custom-modal-stack">
+				<!-- LAPIS 1: Sifat Dasar & Varian (Wajib, Single-Select) -->
+				<section class="custom-tier-section">
+					<div class="tier-header">
+						<div class="tier-badge-row">
+							<span class="tier-number-badge">1</span>
+							<span class="tier-title">Pilihan Varian Dasar</span>
+						</div>
+						<span class="tier-rule-tag mandatory">Wajib (Pilih 1)</span>
+					</div>
+					<p class="tier-desc">Menentukan ukuran, porsi, atau suhu dasar yang mempengaruhi resep dasar.</p>
+
+					<div class="variant-grid">
 						{#each selectedProduct.variants as v}
 							<button
-								class="chip-btn"
-								class:active={selectedVariant?.id === v.id}
+								type="button"
+								class="variant-btn"
+								class:selected={selectedVariant?.id === v.id}
 								onclick={() => (selectedVariant = v)}
 							>
-								<span>{v.name}</span>
-								<span class="chip-price">{formatRupiah(v.price)}</span>
+								<div class="variant-btn-radio">
+									<span class="radio-circle" class:checked={selectedVariant?.id === v.id}></span>
+									<span class="variant-name">{v.name}</span>
+								</div>
+								<span class="variant-price">{formatRupiah(v.price)}</span>
 							</button>
 						{/each}
 					</div>
-				</div>
+				</section>
 
-				<!-- Modifier Groups -->
-				{#each selectedProduct.modifier_groups as mg}
-					<div class="custom-group">
-						<span class="group-label">{mg.name}</span>
-						<div class="option-chips">
-							{#each mg.options as opt}
+				<!-- LAPIS 2: Pilihan Add-ons & Ekstra (Opsional, Multi-Select) -->
+				{#if selectedProduct.modifier_groups && selectedProduct.modifier_groups.length > 0}
+					{#each selectedProduct.modifier_groups as mg}
+						<section class="custom-tier-section">
+							<div class="tier-header">
+								<div class="tier-badge-row">
+									<span class="tier-number-badge">2</span>
+									<span class="tier-title">{mg.name}</span>
+								</div>
+								<span class="tier-rule-tag optional">Opsional (+Biaya)</span>
+							</div>
+							<p class="tier-desc">Komponen ekstra yang menambah harga jual (+Rp) dan memotong stok bahan baku mandiri.</p>
+
+							<div class="addons-grid">
+								{#each mg.options as opt}
+									{@const isChecked = !!selectedAddons[opt.id]}
+									<button
+										type="button"
+										class="addon-btn"
+										class:selected={isChecked}
+										onclick={() => toggleAddon(opt.id, opt.name, opt.price_adjustment)}
+									>
+										<div class="addon-btn-left">
+											<span class="addon-checkbox" class:checked={isChecked}>
+												{#if isChecked}✓{/if}
+											</span>
+											<span class="addon-title">{opt.name}</span>
+										</div>
+										<span class="addon-delta-badge">+{formatRupiah(opt.price_adjustment)}</span>
+									</button>
+								{/each}
+							</div>
+						</section>
+					{/each}
+				{/if}
+
+				<!-- LAPIS 3: Instruksi & Catatan Dapur (Opsional, Bebas Biaya +Rp 0) -->
+				<section class="custom-tier-section">
+					<div class="tier-header">
+						<div class="tier-badge-row">
+							<span class="tier-number-badge">3</span>
+							<span class="tier-title">Instruksi &amp; Catatan Dapur</span>
+						</div>
+						<span class="tier-rule-tag zero-cost">+Rp 0 &bull; Dapur &amp; KDS</span>
+					</div>
+					<p class="tier-desc">Instruksi khusus peracikan/penyajian untuk koki atau barista (tanpa memotong stok).</p>
+
+					<!-- Quick Chips Preset (Tap-to-toggle) -->
+					{#if selectedProduct.preset_notes && selectedProduct.preset_notes.length > 0}
+						<div class="notes-chips-container">
+							{#each selectedProduct.preset_notes as note}
+								{@const isActive = selectedNotes.includes(note)}
 								<button
-									class="chip-btn"
-									class:active={selectedModifiers[mg.id]?.optionName === opt.name}
-									onclick={() => selectModifier(mg.id, opt.name, opt.price_adjustment)}
+									type="button"
+									class="note-chip-btn"
+									class:active={isActive}
+									onclick={() => toggleNotePreset(note)}
 								>
-									<span>{opt.name}</span>
-									{#if opt.price_adjustment > 0}
-										<span class="chip-price">+{formatRupiah(opt.price_adjustment)}</span>
+									<span>{note}</span>
+									{#if isActive}
+										<span class="chip-check">✓</span>
 									{/if}
 								</button>
 							{/each}
 						</div>
-					</div>
-				{/each}
+					{/if}
 
-				<!-- Notes -->
-				<div class="custom-group">
-					<label class="group-label" for="pos-item-note">Catatan Khusus (Optional)</label>
-					<input
-						id="pos-item-note"
-						type="text"
-						class="text-input"
-						placeholder="Misal: Pisahkan es, jangan terlalu manis..."
-						bind:value={itemNote}
-					/>
-				</div>
+					<!-- Free Text Input -->
+					<div class="custom-note-field">
+						<label for="pos-item-note" class="custom-note-label">
+							Catatan Tambahan Khusus (Request Pelanggan)
+						</label>
+						<input
+							id="pos-item-note"
+							type="text"
+							class="text-input"
+							placeholder="Misal: Pisahkan es di cup terpisah, jangan terlalu manis..."
+							bind:value={customNote}
+						/>
+					</div>
+				</section>
 			</div>
 
 			<div class="modal-foot">
-				<button class="btn btn-secondary" onclick={closeCustomization}>Batal</button>
-				<button class="btn btn-primary" onclick={addToCart}>
-					Tambah ke Keranjang
-				</button>
+				<div class="modal-subtotal-preview">
+					<span class="subtotal-label">Subtotal Item:</span>
+					<strong class="subtotal-amount">{formatRupiah(currentCustomTotal)}</strong>
+				</div>
+				<div class="flex items-center gap-3">
+					<button class="btn btn-secondary" onclick={closeCustomization}>Batal</button>
+					<button class="btn btn-primary" onclick={addToCart} disabled={!selectedVariant}>
+						Tambah ke Keranjang
+					</button>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -521,10 +641,13 @@
 							<span class="r-item-name">{it.quantity}x {it.product_name} ({it.variant_name})</span>
 							<span class="r-item-price">{formatRupiah(it.subtotal)}</span>
 						</div>
-						{#if it.modifiers.length > 0}
+						{#if it.modifiers && it.modifiers.length > 0}
 							{#each it.modifiers as m}
-								<div class="r-item-sub">  + {m.option_name}</div>
+								<div class="r-item-sub">   + {m.option_name} (+{formatRupiah(m.price_adjustment)})</div>
 							{/each}
+						{/if}
+						{#if (it.notes && it.notes.length > 0) || it.note}
+							<div class="r-item-note">   * Catatan: {[...(it.notes || []), it.note].filter(Boolean).join(', ')}</div>
 						{/if}
 					{/each}
 				</div>
@@ -802,21 +925,6 @@
 		color: var(--accent-gold);
 	}
 
-	.cart-modifiers {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 4px;
-		margin-bottom: 10px;
-	}
-
-	.mod-pill {
-		font-size: 0.72rem;
-		color: var(--text-muted);
-		background: var(--bg-surface);
-		padding: 2px 6px;
-		border-radius: var(--radius-sm);
-	}
-
 	.cart-item-actions {
 		display: flex;
 		align-items: center;
@@ -892,26 +1000,39 @@
 	/* Modal Styles */
 	.custom-modal, .payment-modal, .receipt-modal {
 		width: 100%;
-		max-width: 520px;
-		padding: 28px;
+		max-width: 580px;
+		max-height: 90vh;
+		display: flex;
+		flex-direction: column;
+		padding: 24px 28px;
 		background: var(--bg-surface);
 		border: 1px solid var(--border-medium);
+		border-radius: var(--radius-lg);
 	}
 
 	.modal-head {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		margin-bottom: 20px;
+		margin-bottom: 16px;
 	}
 
 	.modal-title {
-		font-size: 1.3rem;
+		font-size: 1.25rem;
 		font-weight: 800;
 	}
 
+	.product-cat-pill {
+		font-size: 0.72rem;
+		font-weight: 700;
+		color: var(--primary);
+		background: var(--primary-light);
+		padding: 2px 8px;
+		border-radius: var(--radius-sm);
+	}
+
 	.modal-sub {
-		font-size: 0.8rem;
+		font-size: 0.78rem;
 		color: var(--text-dim);
 	}
 
@@ -923,49 +1044,279 @@
 		cursor: pointer;
 	}
 
-	.custom-group {
-		margin-bottom: 20px;
-	}
-
-	.group-label {
-		display: block;
-		font-size: 0.82rem;
-		font-weight: 700;
-		color: var(--text-muted);
-		margin-bottom: 8px;
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-	}
-
-	.option-chips {
+	.custom-modal-stack {
 		display: flex;
-		flex-wrap: wrap;
+		flex-direction: column;
+		gap: 20px;
+		overflow-y: auto;
+		padding-right: 4px;
+		max-height: calc(90vh - 180px);
+	}
+
+	.custom-tier-section {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		padding: 16px;
+		background: rgba(255, 255, 255, 0.02);
+		border: 1px solid var(--border-subtle);
+		border-radius: var(--radius-md);
+	}
+
+	.tier-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.tier-badge-row {
+		display: flex;
+		align-items: center;
 		gap: 8px;
 	}
 
-	.chip-btn {
-		padding: 8px 14px;
-		font-size: 0.85rem;
-		font-weight: 600;
-		background: var(--bg-card);
-		border: 1px solid var(--border-medium);
-		border-radius: var(--radius-md);
-		cursor: pointer;
+	.tier-number-badge {
+		width: 22px;
+		height: 22px;
+		border-radius: 50%;
+		background: var(--primary);
+		color: #fff;
+		font-size: 0.72rem;
+		font-weight: 800;
 		display: flex;
 		align-items: center;
-		gap: 6px;
+		justify-content: center;
+	}
+
+	.tier-title {
+		font-size: 0.92rem;
+		font-weight: 700;
+		color: var(--text-main);
+	}
+
+	.tier-rule-tag {
+		font-size: 0.72rem;
+		font-weight: 700;
+		padding: 2px 10px;
+		border-radius: var(--radius-full);
+	}
+
+	.tier-rule-tag.mandatory {
+		background: rgba(244, 63, 94, 0.15);
+		color: #fb7185;
+		border: 1px solid rgba(244, 63, 94, 0.3);
+	}
+
+	.tier-rule-tag.optional {
+		background: rgba(245, 158, 11, 0.15);
+		color: #fbbf24;
+		border: 1px solid rgba(245, 158, 11, 0.3);
+	}
+
+	.tier-rule-tag.zero-cost {
+		background: rgba(16, 185, 129, 0.15);
+		color: #34d399;
+		border: 1px solid rgba(16, 185, 129, 0.3);
+	}
+
+	.tier-desc {
+		font-size: 0.76rem;
+		color: var(--text-dim);
+		line-height: 1.3;
+		margin: 0;
+	}
+
+	.variant-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+		gap: 10px;
+		margin-top: 4px;
+	}
+
+	.variant-btn {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 12px 14px;
+		min-height: 44px;
+		border-radius: var(--radius-md);
+		background: var(--bg-card);
+		border: 1px solid var(--border-medium);
+		cursor: pointer;
+		text-align: left;
 		transition: var(--transition);
 	}
 
-	.chip-btn.active {
-		border-color: var(--primary);
-		background: var(--primary-light);
-		color: var(--primary);
+	.variant-btn:hover {
+		border-color: var(--border-primary);
 	}
 
-	.chip-price {
-		font-size: 0.75rem;
+	.variant-btn.selected {
+		border-color: var(--primary);
+		background: var(--primary-light);
+		box-shadow: 0 0 0 1px var(--primary);
+	}
+
+	.variant-btn-radio {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+
+	.radio-circle {
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		border: 2px solid var(--border-medium);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		position: relative;
+	}
+
+	.radio-circle.checked {
+		border-color: var(--primary);
+	}
+
+	.radio-circle.checked::after {
+		content: '';
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: var(--primary);
+		position: absolute;
+	}
+
+	.variant-name {
+		font-size: 0.88rem;
+		font-weight: 700;
+		color: var(--text-main);
+	}
+
+	.variant-price {
+		font-size: 0.85rem;
+		font-weight: 800;
 		color: var(--accent-gold);
+		font-family: var(--font-heading);
+	}
+
+	.addons-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+		gap: 10px;
+		margin-top: 4px;
+	}
+
+	.addon-btn {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 10px 14px;
+		min-height: 42px;
+		border-radius: var(--radius-md);
+		background: var(--bg-card);
+		border: 1px solid var(--border-medium);
+		cursor: pointer;
+		text-align: left;
+		transition: var(--transition);
+	}
+
+	.addon-btn:hover {
+		border-color: var(--border-primary);
+	}
+
+	.addon-btn.selected {
+		border-color: var(--primary);
+		background: var(--primary-light);
+	}
+
+	.addon-btn-left {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.addon-checkbox {
+		width: 16px;
+		height: 16px;
+		border-radius: 4px;
+		border: 1.5px solid var(--border-medium);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 11px;
+		font-weight: 900;
+		color: #fff;
+	}
+
+	.addon-checkbox.checked {
+		background: var(--primary);
+		border-color: var(--primary);
+	}
+
+	.addon-title {
+		font-size: 0.85rem;
+		font-weight: 600;
+		color: var(--text-main);
+	}
+
+	.addon-delta-badge {
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: var(--accent-gold);
+		font-family: var(--font-heading);
+	}
+
+	.notes-chips-container {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin-top: 4px;
+	}
+
+	.note-chip-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 6px 14px;
+		min-height: 36px;
+		border-radius: 9999px;
+		font-size: 0.8rem;
+		font-weight: 600;
+		background: var(--bg-card);
+		border: 1px solid var(--border-medium);
+		color: var(--text-muted);
+		cursor: pointer;
+		transition: var(--transition);
+	}
+
+	.note-chip-btn:hover {
+		border-color: var(--border-primary);
+		color: var(--text-main);
+	}
+
+	.note-chip-btn.active {
+		background: rgba(16, 185, 129, 0.15);
+		border-color: #10b981;
+		color: #34d399;
+		font-weight: 700;
+	}
+
+	.chip-check {
+		font-size: 0.75rem;
+		font-weight: 900;
+	}
+
+	.custom-note-field {
+		margin-top: 10px;
+	}
+
+	.custom-note-label {
+		display: block;
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--text-muted);
+		margin-bottom: 6px;
 	}
 
 	.text-input {
@@ -979,11 +1330,94 @@
 
 	.modal-foot {
 		display: flex;
-		justify-content: flex-end;
+		justify-content: space-between;
+		align-items: center;
 		gap: 12px;
-		margin-top: 24px;
+		margin-top: 20px;
 		padding-top: 16px;
 		border-top: 1px solid var(--border-subtle);
+	}
+
+	.modal-subtotal-preview {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	.subtotal-label {
+		font-size: 0.72rem;
+		color: var(--text-dim);
+		text-transform: uppercase;
+		font-weight: 600;
+	}
+
+	.subtotal-amount {
+		font-size: 1.25rem;
+		font-weight: 800;
+		color: var(--accent-gold);
+		font-family: var(--font-heading);
+	}
+
+	/* Cart Hierarchical Add-ons & Notes */
+	.cart-addons-list {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		margin: 4px 0 6px 0;
+		padding-left: 8px;
+		border-left: 2px solid var(--border-medium);
+	}
+
+	.cart-addon-item {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		font-size: 0.75rem;
+		color: var(--text-muted);
+	}
+
+	.addon-prefix {
+		color: var(--primary);
+		font-weight: 700;
+		margin-right: 4px;
+	}
+
+	.addon-name {
+		flex: 1;
+	}
+
+	.addon-price {
+		font-size: 0.72rem;
+		font-weight: 700;
+		color: var(--accent-gold);
+		font-family: var(--font-heading);
+	}
+
+	.cart-notes-item {
+		display: flex;
+		align-items: flex-start;
+		gap: 4px;
+		font-size: 0.74rem;
+		color: var(--text-dim);
+		margin-top: 4px;
+		padding-left: 8px;
+		font-style: italic;
+	}
+
+	.notes-prefix {
+		color: var(--accent-emerald, #10b981);
+		font-weight: 700;
+	}
+
+	.notes-text {
+		flex: 1;
+		line-height: 1.3;
+	}
+
+	.r-item-note {
+		font-size: 0.75rem;
+		color: #6b635b;
+		font-style: italic;
 	}
 
 	/* Payment Modal */

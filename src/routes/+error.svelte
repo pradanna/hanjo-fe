@@ -46,12 +46,12 @@
 
 	.error-card {
 		max-width: 480px;
-		background: #ffffff;
-		border: 1px solid #e2e8f0;
+		background: var(--bg-panel, #ffffff);
+		border: 1px solid var(--border-panel, #e2e8f0);
 		border-radius: var(--radius-xl, 12px);
 		padding: 40px 32px;
 		text-align: center;
-		box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+		box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -61,7 +61,7 @@
 	.status-code {
 		font-size: 72px;
 		font-weight: 900;
-		color: #059669;
+		color: var(--brand-primary, #059669);
 		line-height: 1;
 		font-family: var(--font-heading, sans-serif);
 	}
@@ -69,13 +69,13 @@
 	.error-title {
 		font-size: 20px;
 		font-weight: 700;
-		color: #0f172a;
+		color: var(--text-main, #0f172a);
 		margin: 0;
 	}
 
 	.error-desc {
 		font-size: 13.5px;
-		color: #475569;
+		color: var(--text-muted, #475569);
 		line-height: 1.5;
 		margin: 0;
 	}
@@ -88,9 +88,9 @@
 	.btn-home {
 		display: inline-block;
 		padding: 10px 24px;
-		background: #059669;
+		background: var(--brand-primary, #059669);
 		color: #ffffff;
-		border-radius: 8px;
+		border-radius: var(--radius-md, 8px);
 		font-weight: 600;
 		font-size: 13.5px;
 		text-decoration: none;
@@ -98,6 +98,6 @@
 	}
 
 	.btn-home:hover {
-		background-color: #047857;
+		background-color: var(--brand-primary-hover, #047857);
 	}
 </style>

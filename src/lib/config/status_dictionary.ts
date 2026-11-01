@@ -28,7 +28,7 @@ export const STATUS_DICTIONARY: Record<string, StatusMeta> = {
 	archived: { label: 'Diarsipkan', variant: 'neutral', description: 'Disimpan di arsip' },
 
 	// --- Status Pengadaan & PO (MS-07) ---
-	ordered: { label: 'Dipesan', variant: 'info', description: 'PO telah dikirim ke pemasok' },
+	ordered: { label: 'Dipesan', variant: 'info', description: 'PO telah dikirim ke supplier' },
 	partially_received: { label: 'Diterima Sebagian', variant: 'warning', description: 'Penerimaan bertahap' },
 	received: { label: 'Diterima Penuh', variant: 'success', description: 'Seluruh barang telah sampai di outlet' },
 	waiting_invoice: { label: 'Menunggu Nota', variant: 'warning', description: 'Barang diterima, nota fisik belum diinput' },

@@ -9,6 +9,7 @@
 	import StatusBadge from '#lib/components/data/StatusBadge.svelte';
 	import CodeBadge from '#lib/components/data/CodeBadge.svelte';
 	import { session } from '#lib/auth/session.svelte.js';
+	import { can } from '#lib/auth/can.js';
 	import { formatRupiah, formatDate } from '#lib/utils/format.js';
 	import type { StockItem, StockItemCostHistory } from '#lib/api/contract/types.js';
 
@@ -41,11 +42,10 @@
 	let editingMinOutletId = $state<string | null>(null);
 	let newMinStockVal = $state('');
 
-	const userRole = $derived(session.user?.role || 'owner');
-	const isStoreManager = $derived(userRole === 'store_manager' || userRole === 'cashier');
+	const canManageCatalog = $derived(can(session.user, 'catalog:manage'));
 
 	function startEditMinStock(outletId: string, currentMin: string) {
-		if (isStoreManager) return;
+		if (!canManageCatalog) return;
 		editingMinOutletId = outletId;
 		newMinStockVal = currentMin;
 	}
@@ -117,7 +117,7 @@
 				</div>
 
 				<div class="header-price-card">
-					<span class="price-label">Harga Ref. Pusat</span>
+					<span class="price-label">Harga Acuan Pusat</span>
 					<span class="price-value">{formatRupiah(item.hq_ref_price || 0)}</span>
 					<span class="price-sub">per {item.base_unit_symbol}</span>
 				</div>
@@ -200,7 +200,7 @@
 									<span class="spec-value">{item.category_name || 'Umum'}</span>
 								</div>
 								<div class="spec-item">
-									<span class="spec-label">Satuan Dasar (Base Unit)</span>
+									<span class="spec-label">Satuan Dasar</span>
 									<span class="spec-value font-mono font-semibold">{item.base_unit_symbol}</span>
 								</div>
 								<div class="spec-item">
@@ -264,13 +264,13 @@
 									</span>
 								</div>
 								<div class="spec-item">
-									<span class="spec-label">Kode Ref Pusat (HQ Code)</span>
+									<span class="spec-label">Kode Referensi Pusat</span>
 									<span class="spec-value font-mono">
 										{item.hq_ref_code ? item.hq_ref_code : '— (Tidak berlaku / Bukan HQ)'}
 									</span>
 								</div>
 								<div class="spec-item">
-									<span class="spec-label">Harga Acuan Pusat (HQ Price)</span>
+									<span class="spec-label">Harga Acuan Pusat</span>
 									<span class="spec-value font-mono font-semibold">
 										{#if item.hq_ref_price && parseFloat(item.hq_ref_price) > 0}
 											{formatRupiah(item.hq_ref_price)} <span class="text-xs text-[var(--text-muted)] font-normal">/ {item.base_unit_symbol}</span>
@@ -327,10 +327,10 @@
 				<!-- TAB 2: STOK PER GERAI -->
 				{:else if activeTab === 'stock'}
 					<div class="tab-panel-stack">
-						{#if isStoreManager}
+						{#if !canManageCatalog}
 							<div class="detail-notice-callout info">
 								<Icon name="information-circle" size={18} />
-								<span>Mode Store Manager: Anda hanya berwenang melihat saldo stok gerai tugas Anda (AC-03.6).</span>
+								<span>Mode Terbatas: Anda hanya berwenang melihat saldo stok gerai tugas Anda.</span>
 							</div>
 						{/if}
 
@@ -389,7 +389,7 @@
 					<div class="tab-panel-stack">
 						<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<div class="pricing-summary-card">
-								<span class="card-caption">Harga Referensi Pusat (HQ)</span>
+								<span class="card-caption">Harga Acuan Pusat</span>
 								<strong class="card-amount">{formatRupiah(item.hq_ref_price || 0)}</strong>
 								<span class="card-hint">Murni acuan belanja acuan pengadaan pusat</span>
 							</div>
@@ -411,7 +411,7 @@
 									<tr>
 										<th>Tanggal</th>
 										<th>No. Faktur</th>
-										<th>Pemasok</th>
+										<th>Supplier</th>
 										<th>Jumlah</th>
 										<th>Harga Satuan</th>
 									</tr>
@@ -444,10 +444,10 @@
 				<!-- TAB 4: BATAS MINIMUM GERAI (AC-03.6) -->
 				{:else if activeTab === 'min_stock'}
 					<div class="tab-panel-stack">
-						{#if isStoreManager}
+						{#if !canManageCatalog}
 							<div class="detail-notice-callout warning">
 								<Icon name="lock-closed" size={18} />
-								<span>Peran Store Manager hanya memiliki hak baca (read-only) pada batas stok minimum (AC-03.6).</span>
+								<span>Akun Anda hanya memiliki hak baca (read-only) pada batas stok minimum.</span>
 							</div>
 						{:else}
 							<div class="detail-notice-callout info">
@@ -462,7 +462,7 @@
 									<tr>
 										<th>Gerai / Outlet</th>
 										<th>Batas Minimum Stok</th>
-										{#if !isStoreManager}
+										{#if canManageCatalog}
 											<th class="w-32 text-right">Aksi</th>
 										{/if}
 									</tr>
@@ -493,7 +493,7 @@
 														</span>
 													{/if}
 												</td>
-												{#if !isStoreManager}
+												{#if canManageCatalog}
 													<td class="text-right">
 														{#if editingMinOutletId === outletId}
 															<div class="flex items-center justify-end gap-2">
@@ -541,7 +541,7 @@
 							<div class="detail-notice-callout warning">
 								<Icon name="exclamation-triangle" size={18} />
 								<span>
-									Bahan ini saat ini aktif digunakan dalam <strong>{item.recipes_using_count} resep menu</strong>. Pengarsipan dilarang sebelum resep dialihkan atau dinonaktifkan (AC-03.5).
+									Bahan ini saat ini aktif digunakan dalam <strong>{item.recipes_using_count} resep menu</strong>. Pengarsipan dilarang sebelum resep dialihkan atau dinonaktifkan.
 								</span>
 							</div>
 						{:else}
@@ -572,7 +572,7 @@
 		{#snippet footer()}
 			<div class="detail-modal-footer">
 				<div>
-					{#if !isStoreManager}
+					{#if canManageCatalog}
 						{#if item.status === 'active'}
 							<button
 								type="button"
@@ -599,7 +599,7 @@
 					<button type="button" class="btn btn-secondary" onclick={onclose}>
 						Tutup
 					</button>
-					{#if !isStoreManager}
+					{#if canManageCatalog}
 						<button
 							type="button"
 							class="btn btn-primary"
@@ -666,7 +666,7 @@
 	.header-sourcing-pill {
 		display: inline-flex;
 		align-items: center;
-		padding: 3px 10px;
+		padding: 4px 12px;
 		border-radius: 9999px;
 		font-size: 11px;
 		font-weight: 600;
@@ -893,7 +893,7 @@
 	}
 
 	.spec-desc-box {
-		padding: 12px 16px;
+		padding: 14px 18px;
 		background: var(--bg-panel-sub, #0f172a);
 		border: 1px solid var(--border-panel, rgba(255, 255, 255, 0.06));
 		border-radius: 8px;
@@ -911,7 +911,7 @@
 		align-items: center;
 		flex-wrap: wrap;
 		gap: 12px;
-		padding: 12px 18px;
+		padding: 14px 18px;
 		background: rgba(0, 0, 0, 0.2);
 		border: 1px solid var(--border-panel, rgba(255, 255, 255, 0.06));
 		border-radius: var(--radius-lg, 10px);

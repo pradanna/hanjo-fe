@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { formatRupiah } from '#lib/api/client';
+	import Icon from '#lib/components/data/Icon.svelte';
 
 	let filterOutlet = $state('Semua Outlet');
 	let filterChannel = $state('Semua Channel');
@@ -128,11 +129,11 @@
 	<div class="page-head-row">
 		<div>
 			<div class="head-badge-row">
-				<h1 class="page-title">Penjualan POS (Sales Ingest Stream)</h1>
+				<h1 class="page-title">Penjualan POS (Riwayat Transaksi)</h1>
 				<span class="pill-badge pill-info">Hanya-Baca / Audit POS</span>
 			</div>
 			<p class="page-subtitle">
-				Data transaksi riil yang masuk otomatis dari aplikasi POS kasir terpisah via API (Idempotent POS Ingestion).
+				Data transaksi riil yang masuk otomatis dan tersinkronisasi langsung dari seluruh terminal kasir POS.
 			</p>
 		</div>
 
@@ -147,7 +148,7 @@
 			</div>
 			<div class="head-stat-item">
 				<span class="head-stat-label">Status Sinkronisasi</span>
-				<strong class="head-stat-val text-success">🟢 3 Outlet Online</strong>
+				<strong class="head-stat-val text-success"><span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>3 Outlet Online</strong>
 			</div>
 		</div>
 	</div>
@@ -255,9 +256,11 @@
 				<div class="modal-head">
 					<div>
 						<h3 class="modal-title">Rincian Struk POS & Audit Konsumsi Resep</h3>
-						<span class="modal-sub">ID Idempotensi: {selectedSaleDetail.idempotencyKey}</span>
+						<span class="modal-sub">No. Referensi Transaksi: {selectedSaleDetail.idempotencyKey}</span>
 					</div>
-					<button class="close-btn" onclick={() => (selectedSaleDetail = null)}>✕</button>
+					<button class="close-btn" onclick={() => (selectedSaleDetail = null)} aria-label="Tutup rincian struk">
+						<Icon name="x-mark" size={16} />
+					</button>
 				</div>
 
 				<div class="receipt-audit-body">

@@ -85,7 +85,7 @@
 		});
 
 		if (hasCycle) {
-			errorMessage = `Terdeteksi siklus konversi satuan (${fromUnit?.symbol} -> ${toUnit?.symbol}). Aturan konversi melingkar dilarang (AC-03.2).`;
+			errorMessage = `Terdeteksi siklus konversi satuan (${fromUnit?.symbol} -> ${toUnit?.symbol}). Aturan konversi melingkar tidak diizinkan.`;
 			return;
 		}
 
@@ -109,7 +109,7 @@
 <Modal
 	{open}
 	title="Tambah Aturan Konversi Satuan"
-	subtitle="Tentukan rasio konversi otomatis antara dua satuan ukuran (AC-03.2)"
+	subtitle="Tentukan rasio konversi otomatis antara dua satuan ukuran"
 	maxWidth="540px"
 	{onclose}
 >

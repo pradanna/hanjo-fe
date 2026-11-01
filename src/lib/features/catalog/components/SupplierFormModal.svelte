@@ -1,6 +1,6 @@
 <script lang="ts">
 	/**
-	 * Form Modal: Tambah & Ubah Data Pemasok (Supplier)
+	 * Form Modal: Tambah & Ubah Data Supplier
 	 * Menggunakan komponen form terpadu: Input, Select, Textarea, Button.
 	 * Mengakomodasi tipe 'hq_warehouse' vs 'external' (AC-03.7)
 	 */
@@ -35,7 +35,7 @@
 	let errorMessage = $state<string | null>(null);
 
 	const typeOptions = [
-		{ value: 'external', label: 'Pemasok Luar (External Vendor)', subtitle: 'Penyedia bahan baku pihak ketiga' },
+		{ value: 'external', label: 'Supplier Luar (External Vendor)', subtitle: 'Penyedia bahan baku pihak ketiga' },
 		{ value: 'hq_warehouse', label: 'Gudang Distribusi Pusat (HQ Central Warehouse)', subtitle: 'Hub logistik internal HQ' }
 	];
 
@@ -77,7 +77,7 @@
 	async function handleSubmit(e: SubmitEvent) {
 		e.preventDefault();
 		if (!name.trim()) {
-			errorMessage = 'Nama pemasok wajib diisi';
+			errorMessage = 'Nama supplier wajib diisi';
 			return;
 		}
 
@@ -99,15 +99,15 @@
 
 		isSubmitting = false;
 		if (!success) {
-			errorMessage = 'Gagal menyimpan data pemasok.';
+			errorMessage = 'Gagal menyimpan data supplier.';
 		}
 	}
 </script>
 
 <Modal
 	{open}
-	title={supplier ? 'Ubah Data Pemasok' : 'Tambah Pemasok Baru'}
-	subtitle={supplier ? `Perbarui profil ${supplier.name}` : 'Daftarkan pemasok eksternal atau gudang pusat internal'}
+	title={supplier ? 'Ubah Data Supplier' : 'Tambah Supplier Baru'}
+	subtitle={supplier ? `Perbarui profil ${supplier.name}` : 'Daftarkan supplier eksternal atau gudang pusat internal'}
 	maxWidth="640px"
 	{onclose}
 >
@@ -119,31 +119,31 @@
 			</div>
 		{/if}
 
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-			<!-- Nama Pemasok -->
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+			<!-- Nama Supplier -->
 			<div class="md:col-span-2">
 				<Input
 					id="sup-name"
-					label="Nama Pemasok / Badan Usaha"
+					label="Nama Supplier / Badan Usaha"
 					placeholder="Contoh: PT Sumber Kopi Nusantara"
 					bind:value={name}
 					required
 				/>
 			</div>
 
-			<!-- Kode Pemasok -->
+			<!-- Kode Supplier -->
 			<Input
 				id="sup-code"
-				label="Kode Pemasok"
+				label="Kode Supplier"
 				placeholder="SUP-EXT-01"
 				bind:value={code}
 				class="font-mono"
 			/>
 
-			<!-- Tipe Pemasok (AC-03.7) -->
+			<!-- Tipe Supplier (AC-03.7) -->
 			<Select
 				id="sup-type"
-				label="Tipe Entitas Pemasok"
+				label="Tipe Entitas Supplier"
 				bind:value={type}
 				options={typeOptions}
 				required
@@ -170,7 +170,7 @@
 				id="sup-email"
 				label="Alamat Email Pemesanan"
 				type="email"
-				placeholder="order@pemasok.com"
+				placeholder="order@supplier.com"
 				bind:value={email}
 			/>
 
@@ -196,7 +196,7 @@
 			<div class="md:col-span-2">
 				<Textarea
 					id="sup-address"
-					label="Alamat Kantor / Gudang Pemasok"
+					label="Alamat Kantor / Gudang Supplier"
 					placeholder="Alamat lengkap lokasi pengiriman..."
 					bind:value={address}
 					rows={3}
@@ -217,7 +217,7 @@
 				loading={isSubmitting}
 			>
 				<Icon name="check" size={16} />
-				<span>{supplier ? 'Simpan Perubahan' : 'Tambah Pemasok'}</span>
+				<span>{supplier ? 'Simpan Perubahan' : 'Tambah Supplier'}</span>
 			</Button>
 		</div>
 	{/snippet}

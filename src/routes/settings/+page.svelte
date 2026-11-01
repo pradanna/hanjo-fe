@@ -1,7 +1,18 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { themeStore } from '../../lib/theme.svelte';
+	import { approvalsStore } from '../../lib/features/approvals/stores/approvals.svelte.js';
+	import ApprovalRulesSection from '../../lib/features/approvals/components/ApprovalRulesSection.svelte';
+	import '../../lib/features/approvals/approvals.css';
 
 	let activeSettingsTab = $state<'FLAGS' | 'THEME' | 'CHANNELS' | 'APPROVAL_RULES' | 'AUDIT_LOG'>('FLAGS');
+
+	onMount(() => {
+		if (window.location.hash === '#rules') {
+			activeSettingsTab = 'APPROVAL_RULES';
+		}
+		approvalsStore.loadRules();
+	});
 
 	// Feature Flags with Dependency Rules (PRD 6.2)
 	let featureFlags = $state([
@@ -80,7 +91,7 @@
 		<div>
 			<h1 class="page-title">Pengaturan & Konfigurasi Sistem</h1>
 			<p class="page-subtitle">
-				Kontrol preferensi tema, feature flags, markup harga sales channel, dan jejak audit log (PRD 6.2, 6.14, 13.1).
+				Kontrol preferensi tema, aktivasi modul fitur, markup harga sales channel, dan riwayat jejak audit sistem.
 			</p>
 		</div>
 	</div>
@@ -89,13 +100,16 @@
 	<div class="panel-card subnav-card">
 		<div class="subnav-pills">
 			<button class="subnav-pill" class:active={activeSettingsTab === 'FLAGS'} onclick={() => (activeSettingsTab = 'FLAGS')}>
-				Feature Flags & Lisensi
+				Aktivasi Modul Fitur
 			</button>
 			<button class="subnav-pill" class:active={activeSettingsTab === 'THEME'} onclick={() => (activeSettingsTab = 'THEME')}>
 				Tema Tampilan (Light / Dark)
 			</button>
 			<button class="subnav-pill" class:active={activeSettingsTab === 'CHANNELS'} onclick={() => (activeSettingsTab = 'CHANNELS')}>
 				Sales Channel & Markup %
+			</button>
+			<button class="subnav-pill" class:active={activeSettingsTab === 'APPROVAL_RULES'} onclick={() => (activeSettingsTab = 'APPROVAL_RULES')}>
+				Aturan Persetujuan (Approval Rules)
 			</button>
 			<button class="subnav-pill" class:active={activeSettingsTab === 'AUDIT_LOG'} onclick={() => (activeSettingsTab = 'AUDIT_LOG')}>
 				Audit Log & Jejak Perubahan
@@ -108,8 +122,8 @@
 		<div class="panel-card tab-pane">
 			<div class="pane-head">
 				<div>
-					<h3 class="pane-title">Feature Flags per Instalasi (Single-Tenant)</h3>
-					<span class="pane-sub">Fitur dapat dihidupkan atau dimatikan tanpa mengubah inti kode (PRD 2 & 6.2).</span>
+					<h3 class="pane-title">Aktivasi Modul & Fitur Tambahan</h3>
+					<span class="pane-sub">Fitur dapat diaktifkan atau dinonaktifkan sesuai kebutuhan operasional usaha Anda.</span>
 				</div>
 				<span class="pill-badge pill-info">Kombinasi Dependensi Tervalidasi</span>
 			</div>
@@ -140,12 +154,12 @@
 		</div>
 	{/if}
 
-	<!-- Tab: Theme Settings (PRD 13.1 Light/Dark Mode) -->
+	<!-- Tab: Theme Settings -->
 	{#if activeSettingsTab === 'THEME'}
 		<div class="panel-card tab-pane">
 			<div class="pane-head">
 				<div>
-					<h3 class="pane-title">Preferensi Tema Tampilan (PRD 13.1)</h3>
+					<h3 class="pane-title">Preferensi Tema Tampilan</h3>
 					<span class="pane-sub">Pilih mode tampilan antarmuka sesuai preferensi Anda. Mode terpilih akan tersimpan otomatis.</span>
 				</div>
 				<span class="pill-badge pill-info">Mode Switchable Aktif</span>
@@ -256,7 +270,12 @@
 		</div>
 	{/if}
 
-	<!-- Tab 3: Audit Log -->
+	<!-- Tab 3: Aturan Persetujuan (MS-05 PG-set-approval-rules) -->
+	{#if activeSettingsTab === 'APPROVAL_RULES'}
+		<ApprovalRulesSection />
+	{/if}
+
+	<!-- Tab 4: Audit Log -->
 	{#if activeSettingsTab === 'AUDIT_LOG'}
 		<div class="panel-card tab-pane">
 			<div class="pane-head">

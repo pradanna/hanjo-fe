@@ -1,7 +1,7 @@
 # Antigravity Agent Guidelines: Hanjo Frontend (SvelteKit 5)
 
 > **Cakupan Proyek**: `frontend/` (SvelteKit 5, TypeScript, Vanilla CSS)  
-> **Dokumen Referensi Utama**: [`docs/MILESTONE.md`](file:///c:/PROJECT/WEBSITE/hanjo/frontend/docs/MILESTONE.md) & [`docs/milestones/README.md`](file:///c:/PROJECT/WEBSITE/hanjo/frontend/docs/milestones/README.md)  
+> **Dokumen Referensi Utama**: [`docs/MILESTONE.md`](file:///c:/PROJECT/WEBSITE/hanjo/frontend/docs/MILESTONE.md), [`docs/milestones/README.md`](file:///c:/PROJECT/WEBSITE/hanjo/frontend/docs/milestones/README.md) & [`docs/COMPONENTS.md`](file:///c:/PROJECT/WEBSITE/hanjo/docs/COMPONENTS.md)  
 > **Prinsip Inti**: Domain-Driven Design (DDD), Clean Architecture, Component-First, UI Buta Sumber Data, Mock-to-Real Parity.
 
 ---
@@ -23,10 +23,11 @@
      - State reaktif & form handler fitur → `src/lib/features/<modul>/stores/*.svelte.ts`
    - **DILARANG KERAS** menumpuk ratusan baris fungsi algoritma, pemrosesan data, atau state machine langsung di dalam tag `<script>` file `.svelte`. File `.svelte` harus tetap tipis, bersih, dan mudah dibaca.
 
-3. **Arsitektur Component-First & Anti-Duplikasi UI**:
-   - **Cek Komponen Terlebih Dahulu**: Sebelum membuat halaman, view, drawer, modal, atau elemen visual baru, **WAJIB periksa terlebih dahulu komponen yang sudah ada di `src/lib/ui/`** (seperti `Button`, `Input`, `Select`, `Combobox`, `Table`, `StatCard`, `StatusBadge`, `Modal`, `ProgressBar`, dll.).
-   - **Wajib Digunakan Ulang (Reuse)**: Jika komponen sudah ada, **WAJIB REUSE**. Dilarang membuat duplikasi markup HTML dan styling baru untuk fungsi yang sama.
-   - **Buat Komponen Baru Jika Belum Ada**: Jika belum ada komponen yang memenuhi kebutuhan, **WAJIB buat komponen reusable baru di `src/lib/ui/` terlebih dahulu**, lengkapi dengan tipe props TypeScript dan styling token desain baku, baru kemudian digunakan pada halaman/fitur.
+3. **Arsitektur Component-First & Anti-Duplikasi UI (UI Pre-Flight Protocol)**:
+   - **SOP Wajib Agen Sebelum Menulis Kode UI (3 Langkah Mutlak)**:
+     1. **Langkah 1 (Stop & Check)**: Sebelum membuat view, drawer, modal, tabel, atau kontrol form baru, **AGEN WAJIB BUKA & BACA [`docs/COMPONENTS.md`](file:///c:/PROJECT/WEBSITE/hanjo/docs/COMPONENTS.md)** dan cek pustaka `$lib/ui`.
+     2. **Langkah 2 (Mandatory Reuse)**: Jika komponen sudah ada (misal `Button`, `Input`, `CurrencyInput`, `Select`, `Combobox`, `Modal`, `Drawer`, `Table`, `MetricCard`, `StatusBadge`, `Skeleton`, `EmptyState`), **WAJIB REUSE**. DILARANG KERAS membuat tag HTML mentah (`<input>`, `<button>`, `<select>`) atau membuat styling kustom untuk fungsi yang sudah ada.
+     3. **Langkah 3 (Register New Component)**: Jika komponen yang dibutuhkan memang benar-benar belum ada, buat komponen reusable baru di `src/lib/components/` (ekspor ke `index.ts`) atau `src/lib/features/<modul>/components/`, lalu **WAJIB langsung daftarkan ke [`docs/COMPONENTS.md`](file:///c:/PROJECT/WEBSITE/hanjo/docs/COMPONENTS.md)** agar agen berikutnya tidak membuat duplikasi.
 
 4. **Pemisahan Style & Tailwind CSS v4 sebagai Base**:
    - **Tailwind CSS v4 sebagai Base**: Gunakan utility classes Tailwind v4 untuk tata letak (*layout*), *flexbox/grid*, *spacing*, *sizing*, dan tipografi dasar.

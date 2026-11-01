@@ -7,6 +7,7 @@
 	import Icon from '../../../components/data/Icon.svelte';
 	import Button from '../../../components/forms/Button.svelte';
 	import Modal from '../../../components/feedback/Modal.svelte';
+	import Select, { type SelectOption } from '../../../components/forms/Select.svelte';
 	import type { RecipeIngredient } from '../../../api/contract/types.js';
 
 	let variantId = $state('');
@@ -25,6 +26,34 @@
 	}>>([]);
 
 	let isSubmitting = $state(false);
+
+	const variantOptions = $derived<SelectOption[]>(
+		menuStore.menuItems.flatMap((m) =>
+			m.variants.map((v) => ({
+				value: v.id,
+				label: `${m.name} - ${v.name}`
+			}))
+		)
+	);
+
+	const scopeOptions: SelectOption[] = [
+		{ value: 'standard', label: 'Standar (Semua Gerai)' },
+		{ value: 'outlet_override', label: 'Override Khusus Gerai (Lokal)' }
+	];
+
+	const outletOptions: SelectOption[] = [
+		{ value: 'out-sub-01', label: 'Jodi Gubeng (Surabaya)' },
+		{ value: 'out-bdg-01', label: 'Jodi Dago (Bandung)' },
+		{ value: 'out-jkt-01', label: 'Jodi Senopati (Jakarta)' },
+		{ value: 'out-ubud-01', label: 'Kaveloka Ubud' }
+	];
+
+	const stockItemOptions = $derived<SelectOption[]>(
+		menuStore.stockItems.map((st) => ({
+			value: st.id,
+			label: `${st.name} (${st.code})`
+		}))
+	);
 
 	$effect(() => {
 		if (menuStore.editingRecipe) {
@@ -132,191 +161,202 @@
 
 <Modal
 	open={menuStore.isRecipeModalOpen}
-	title="Rilis Versi Resep Baru / Override Outlet (PG-cat-recipe-editor)"
-	maxWidth="880px"
+	title="Rilis Versi Resep Baru / Override Outlet"
+	maxWidth="1180px"
 	onclose={() => (menuStore.isRecipeModalOpen = false)}
 >
-	<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="form-field-stack">
+	<div class="recipe-modal-container">
 		<!-- Peringatan Invariant Immutabilitas Resep Berversi -->
 		<div class="formula-callout !border-indigo-500/30">
 			<Icon name="clock" size={20} class="text-indigo-400 shrink-0 mt-0.5" />
 			<div>
-				<span class="font-semibold block mb-0.5">Invarian Resep Berversi (AC-04.3, AC-04.5):</span>
-				<p class="text-xs">
+				<span class="font-semibold block mb-0.5 text-sm">Invarian Resep Berversi:</span>
+				<p class="text-xs text-[var(--text-muted)] leading-relaxed m-0">
 					Resep aktif tidak dapat diedit secara langsung demi menjaga integritas data transaksi historis. Menyimpan resep baru akan membuat versi baru berikutnya dengan tanggal berlaku efektif. Dua resep aktif tidak boleh tumpang tindih untuk varian dan outlet yang sama.
 				</p>
 			</div>
 		</div>
 
-		<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-			<!-- Pilihan Varian -->
-			<div>
-				<label class="block text-xs font-semibold text-[var(--text-muted)] uppercase mb-1.5" for="recipe-variant">
-					Varian Menu Sasaran <span class="text-rose-400">*</span>
-				</label>
-				<select class="form-input-lg" bind:value={variantId} required id="recipe-variant">
-					{#each menuStore.menuItems as m}
-						<optgroup label={m.name}>
-							{#each m.variants as v}
-								<option value={v.id}>{m.name} - {v.name}</option>
-							{/each}
-						</optgroup>
-					{/each}
-				</select>
-			</div>
+		<form id="recipe-editor-form" onsubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+			<!-- Layout 2 Kolom: Kiri Parameter Resep, Kanan Komposisi Bahan Resep -->
+			<div class="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
+				<!-- KOLOM KIRI: Identitas & Cakupan Resep (5 cols) -->
+				<div class="lg:col-span-5 flex flex-col gap-5">
+					<!-- Pilihan Varian -->
+					<div class="form-group">
+						<label class="block text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2" for="recipe-variant">
+							Varian Menu Sasaran <span class="text-rose-400">*</span>
+						</label>
+						<Select
+							id="recipe-variant"
+							bind:value={variantId}
+							options={variantOptions}
+							searchable
+							placeholder="Pilih varian menu..."
+						/>
+					</div>
 
-			<!-- Scope Resep: Standar vs Outlet Override -->
-			<div>
-				<label class="block text-xs font-semibold text-[var(--text-muted)] uppercase mb-1.5" for="recipe-scope">
-					Cakupan Resep <span class="text-rose-400">*</span>
-				</label>
-				<select class="form-input-lg" bind:value={scopeType} required id="recipe-scope">
-					<option value="standard">Standar Nasional (Semua Gerai)</option>
-					<option value="outlet_override">Override Khusus Gerai (Lokal)</option>
-				</select>
-			</div>
+					<!-- Scope Resep: Standar vs Outlet Override -->
+					<div class="form-group">
+						<label class="block text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2" for="recipe-scope">
+							Cakupan Resep <span class="text-rose-400">*</span>
+						</label>
+						<Select
+							id="recipe-scope"
+							bind:value={scopeType}
+							options={scopeOptions}
+						/>
+					</div>
 
-			<!-- Outlet Khusus jika Override -->
-			{#if scopeType === 'outlet_override'}
-				<div>
-					<label class="block text-xs font-semibold text-[var(--text-muted)] uppercase mb-1.5" for="recipe-outlet">
-						Gerai Sasaran Override <span class="text-rose-400">*</span>
-					</label>
-					<select class="form-input-lg" bind:value={outletId} required id="recipe-outlet">
-						<option value="out-sub-01">Jodi Gubeng (Surabaya)</option>
-						<option value="out-bdg-01">Jodi Dago (Bandung)</option>
-						<option value="out-jkt-01">Jodi Senopati (Jakarta)</option>
-						<option value="out-ubud-01">Kaveloka Ubud</option>
-					</select>
+					<!-- Outlet Khusus jika Override -->
+					{#if scopeType === 'outlet_override'}
+						<div class="form-group">
+							<label class="block text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2" for="recipe-outlet">
+								Gerai Sasaran Override <span class="text-rose-400">*</span>
+							</label>
+							<Select
+								id="recipe-outlet"
+								bind:value={outletId}
+								options={outletOptions}
+							/>
+						</div>
+					{/if}
+
+					<!-- Rentang Waktu Berlaku Efektif -->
+					<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+						<div class="form-group">
+							<label class="block text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2" for="recipe-eff-from">
+								Berlaku Mulai <span class="text-rose-400">*</span>
+							</label>
+							<input
+								type="date"
+								class="form-input-lg w-full !min-h-[42px] px-3 text-xs"
+								bind:value={effectiveFrom}
+								required
+								id="recipe-eff-from"
+							/>
+						</div>
+
+						<div class="form-group">
+							<label class="block text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2" for="recipe-eff-until">
+								Berlaku Sampai (Opsional)
+							</label>
+							<input
+								type="date"
+								class="form-input-lg w-full !min-h-[42px] px-3 text-xs"
+								bind:value={effectiveUntil}
+								id="recipe-eff-until"
+							/>
+						</div>
+					</div>
+
+					<!-- Catatan Perubahan Formula -->
+					<div class="form-group">
+						<label class="block text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2" for="recipe-notes">
+							Catatan Rilis &amp; Justifikasi Perubahan
+						</label>
+						<textarea
+							class="form-input-lg w-full !min-h-[90px] p-3 text-xs leading-relaxed resize-none"
+							rows="3"
+							placeholder="Contoh: Takaran gula aren disesuaikan menjadi 25ml untuk selera pasar Jawa Timur"
+							bind:value={notes}
+							id="recipe-notes"
+						></textarea>
+					</div>
 				</div>
-			{/if}
-		</div>
 
-		<!-- Rentang Waktu Berlaku Efektif -->
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-			<div>
-				<label class="block text-xs font-semibold text-[var(--text-muted)] uppercase mb-1.5" for="recipe-eff-from">
-					Berlaku Efektif Mulai (effective_from) <span class="text-rose-400">*</span>
-				</label>
-				<input
-					type="date"
-					class="form-input-lg"
-					bind:value={effectiveFrom}
-					required
-					id="recipe-eff-from"
-				/>
+				<!-- KOLOM KANAN: Komposisi Bahan Resep dalam Satuan Saji (7 cols) -->
+				<div class="lg:col-span-7 flex flex-col gap-4">
+					<div class="flex items-center justify-between">
+						<div class="flex items-center gap-2">
+							<span class="block text-xs font-semibold text-[var(--text-main)] uppercase tracking-wider">
+								Komposisi Bahan Resep
+							</span>
+							<span class="text-[0.7rem] px-3 py-1 rounded-full bg-[var(--bg-panel-sub)] border border-[var(--border-subtle)] text-[var(--text-muted)] font-mono whitespace-nowrap">
+								{ingredients.length} Bahan
+							</span>
+						</div>
+						<Button
+							type="button"
+							variant="secondary"
+							size="sm"
+							onclick={addIngredientRow}
+						>
+							<Icon name="plus" size={14} />
+							<span>Tambah Baris Bahan</span>
+						</Button>
+					</div>
+
+					<div class="bom-table-wrapper rounded-xl border border-[var(--border-subtle)] overflow-hidden bg-[var(--bg-panel-sub)]">
+						<div class="overflow-x-auto max-h-[460px] overflow-y-auto">
+							<table class="recipe-table !text-xs w-full">
+								<thead>
+									<tr>
+										<th style="min-width: 220px;">Pilih Bahan Baku</th>
+										<th style="width: 140px;">Takaran Pakai</th>
+										<th style="width: 100px;">Waste %</th>
+										<th style="width: 44px; text-align: center;">Aksi</th>
+									</tr>
+								</thead>
+								<tbody>
+									{#each ingredients as ing, idx}
+										<tr>
+											<td>
+												<Select
+													options={stockItemOptions}
+													value={ing.stock_item_id}
+													onchange={(val) => handleStockItemSelect(idx, val)}
+													searchable
+													placeholder="Pilih Bahan Baku..."
+												/>
+											</td>
+											<td>
+												<div class="flex items-center gap-1.5">
+													<input
+														type="text"
+														class="form-input-lg !min-h-[40px] px-2.5 text-xs font-mono w-full"
+														bind:value={ing.quantity}
+														placeholder="18.0000"
+													/>
+													<span class="text-[var(--text-muted)] font-mono text-xs shrink-0 min-w-[20px]">{ing.serving_unit}</span>
+												</div>
+											</td>
+											<td>
+												<div class="flex items-center gap-1">
+													<input
+														type="text"
+														class="form-input-lg !min-h-[40px] px-2 text-xs w-full"
+														bind:value={ing.waste_pct}
+														placeholder="0.00"
+													/>
+													<span class="text-[var(--text-muted)] text-xs shrink-0">%</span>
+												</div>
+											</td>
+											<td class="text-center">
+												{#if ingredients.length > 1}
+													<button
+														type="button"
+														class="p-2 rounded-lg hover:bg-rose-500/10 text-rose-400 hover:text-rose-300 transition-colors inline-flex items-center justify-center"
+														onclick={() => removeIngredientRow(idx)}
+														title="Hapus baris"
+													>
+														<Icon name="trash" size={15} />
+													</button>
+												{/if}
+											</td>
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
 			</div>
+		</form>
+	</div>
 
-			<div>
-				<label class="block text-xs font-semibold text-[var(--text-muted)] uppercase mb-1.5" for="recipe-eff-until">
-					Berlaku Sampai (Opsional)
-				</label>
-				<input
-					type="date"
-					class="form-input-lg"
-					bind:value={effectiveUntil}
-					id="recipe-eff-until"
-				/>
-			</div>
-		</div>
-
-		<!-- Catatan Perubahan Formula -->
-		<div>
-			<label class="block text-xs font-semibold text-[var(--text-muted)] uppercase mb-1.5" for="recipe-notes">
-				Catatan Rilis &amp; Justifikasi Perubahan
-			</label>
-			<input
-				type="text"
-				class="form-input-lg"
-				placeholder="Contoh: Takaran gula aren disesuaikan menjadi 25ml untuk selera pasar Jawa Timur"
-				bind:value={notes}
-				id="recipe-notes"
-			/>
-		</div>
-
-		<!-- Daftar Komposisi Bahan Baku (BOM Rows) -->
-		<div class="space-y-3 pt-2">
-			<div class="flex items-center justify-between">
-				<span class="block text-xs font-semibold text-[var(--text-main)] uppercase">
-					Komposisi Bahan Baku dalam Satuan Saji (BOM):
-				</span>
-				<Button
-					type="button"
-					variant="secondary"
-					size="sm"
-					onclick={addIngredientRow}
-				>
-					<Icon name="plus" size={14} />
-					<span>Tambah Baris Bahan</span>
-				</Button>
-			</div>
-
-			<div class="overflow-x-auto rounded-lg border border-[var(--border-subtle)]">
-				<table class="recipe-table !text-xs">
-					<thead>
-						<tr>
-							<th style="width: 45%;">Pilih Bahan Baku</th>
-							<th style="width: 25%;">Takaran Pakai</th>
-							<th style="width: 15%;">Waste %</th>
-							<th style="width: 15%; text-align: center;">Aksi</th>
-						</tr>
-					</thead>
-					<tbody>
-						{#each ingredients as ing, idx}
-							<tr>
-								<td>
-									<select
-										class="form-input-lg !min-h-[36px] !py-1 text-xs"
-										value={ing.stock_item_id}
-										onchange={(e) => handleStockItemSelect(idx, (e.target as HTMLSelectElement).value)}
-									>
-										{#each menuStore.stockItems as st}
-											<option value={st.id}>{st.name} ({st.code})</option>
-										{/each}
-									</select>
-								</td>
-								<td>
-									<div class="flex items-center gap-1.5">
-										<input
-											type="text"
-											class="form-input-lg !min-h-[36px] !py-1 text-xs font-mono"
-											bind:value={ing.quantity}
-											placeholder="18.0000"
-										/>
-										<span class="text-[var(--text-muted)] font-mono">{ing.serving_unit}</span>
-									</div>
-								</td>
-								<td>
-									<div class="flex items-center gap-1">
-										<input
-											type="text"
-											class="form-input-lg !min-h-[36px] !py-1 text-xs"
-											bind:value={ing.waste_pct}
-											placeholder="0.00"
-										/>
-										<span class="text-[var(--text-muted)]">%</span>
-									</div>
-								</td>
-								<td class="text-center">
-									{#if ingredients.length > 1}
-										<button
-											type="button"
-											class="p-1.5 rounded hover:bg-rose-500/10 text-rose-400"
-											onclick={() => removeIngredientRow(idx)}
-											title="Hapus baris"
-										>
-											<Icon name="trash" size={16} />
-										</button>
-									{/if}
-								</td>
-							</tr>
-						{/each}
-					</tbody>
-				</table>
-			</div>
-		</div>
-
-		<div class="flex items-center justify-end gap-3 pt-4 border-t border-[var(--border-subtle)]">
+	{#snippet footer()}
+		<div class="flex items-center justify-end gap-3 w-full">
 			<Button
 				variant="secondary"
 				type="button"
@@ -327,11 +367,31 @@
 
 			<Button
 				variant="primary"
-				type="submit"
+				type="button"
+				onclick={handleSubmit}
 				loading={isSubmitting}
 			>
 				Rilis Versi Resep Baru
 			</Button>
 		</div>
-	</form>
+	{/snippet}
 </Modal>
+
+<style>
+	.recipe-modal-container {
+		display: flex;
+		flex-direction: column;
+		gap: 22px;
+	}
+
+	.bom-table-wrapper {
+		box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+	}
+
+	.bom-table-wrapper table th {
+		position: sticky;
+		top: 0;
+		z-index: 10;
+		background: var(--bg-panel, #0f172a);
+	}
+</style>

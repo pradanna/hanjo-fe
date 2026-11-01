@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Icon from '#lib/components/data/Icon.svelte';
+
 	export interface ComboboxOption {
 		value: string;
 		label: string;
@@ -127,7 +129,7 @@
 							onchange?.('');
 						}}
 					>
-						&times;
+						<Icon name="x-mark" size={14} />
 					</button>
 				{/if}
 				<button
@@ -210,7 +212,7 @@
 	.form-label {
 		font-size: 11.5px;
 		font-weight: 500;
-		color: var(--text-muted, #94a3b8);
+		color: var(--text-muted);
 		display: flex;
 		align-items: center;
 		gap: 3px;
@@ -221,11 +223,11 @@
 	}
 
 	.form-control:focus-within .form-label {
-		color: var(--text-main, #f1f5f9);
+		color: var(--text-main);
 	}
 
 	.required-star {
-		color: var(--pill-danger-text, #dc2626);
+		color: var(--pill-danger-text);
 		font-size: 11px;
 		font-weight: 500;
 		opacity: 0.85;
@@ -239,8 +241,8 @@
 	.input-wrapper {
 		display: flex;
 		align-items: center;
-		background: var(--bg-input, #ffffff);
-		border: 1px solid var(--border-input, rgba(255, 255, 255, 0.12));
+		background: var(--bg-input);
+		border: 1px solid var(--border-input);
 		border-radius: var(--radius-md, 8px);
 		transition: border-color 0.15s ease, box-shadow 0.15s ease;
 		overflow: hidden;
@@ -249,22 +251,22 @@
 	}
 
 	.input-wrapper:hover:not(:focus-within) {
-		border-color: var(--border-input-hover, rgba(255, 255, 255, 0.22));
+		border-color: var(--border-input-hover);
 	}
 
 	.combobox-container.is-open .input-wrapper,
 	.input-wrapper:focus-within {
-		border-color: var(--brand-primary, #059669);
-		box-shadow: 0 0 0 3px var(--brand-primary-dim, rgba(5, 150, 105, 0.1));
+		border-color: var(--brand-primary);
+		box-shadow: 0 0 0 3px var(--brand-primary-dim);
 	}
 
 	.combobox-container.has-error .input-wrapper {
-		border-color: var(--pill-danger-text, #dc2626);
-		background-color: var(--pill-danger-bg, #fef2f2);
+		border-color: var(--pill-danger-text);
+		background-color: var(--pill-danger-bg);
 	}
 
 	.combobox-container.is-disabled .input-wrapper {
-		background-color: var(--bg-panel-sub, #f1f5f9);
+		background-color: var(--bg-panel-sub);
 		opacity: 0.65;
 		cursor: not-allowed;
 	}
@@ -276,7 +278,7 @@
 		background: transparent;
 		padding: 9px 14px;
 		font-size: 13.5px;
-		color: var(--text-main, #0f172a);
+		color: var(--text-main);
 		font-family: var(--font-body);
 		width: 100%;
 	}
@@ -295,25 +297,31 @@
 	.clear-btn {
 		background: none;
 		border: none;
-		color: #94a3b8;
-		font-size: 16px;
+		color: var(--text-muted);
 		cursor: pointer;
-		padding: 2px 4px;
+		padding: 4px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		line-height: 1;
 	}
 
 	.clear-btn:hover {
-		color: #0f172a;
+		color: var(--text-main);
 	}
 
 	.arrow-btn {
 		background: none;
 		border: none;
-		color: #64748b;
+		color: var(--text-muted);
 		cursor: pointer;
 		display: flex;
 		align-items: center;
 		padding: 4px;
+	}
+
+	.arrow-btn:hover {
+		color: var(--text-main);
 	}
 
 	.arrow-icon {
@@ -330,10 +338,10 @@
 		left: 0;
 		right: 0;
 		z-index: 50;
-		background: #ffffff;
-		border: 1px solid var(--border-panel, #e2e8f0);
+		background: var(--bg-panel);
+		border: 1px solid var(--border-panel);
 		border-radius: var(--radius-md, 8px);
-		box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+		box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.45), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
 		max-height: 220px;
 		overflow-y: auto;
 	}
@@ -349,7 +357,7 @@
 		justify-content: space-between;
 		padding: 9px 14px;
 		font-size: 13px;
-		color: var(--text-main, #0f172a);
+		color: var(--text-main);
 		text-align: left;
 		background: none;
 		border: none;
@@ -358,11 +366,11 @@
 	}
 
 	.option-item:hover:not(:disabled) {
-		background-color: #f8fafc;
+		background-color: var(--bg-panel-hover);
 	}
 
 	.option-item.is-selected {
-		background-color: #f0fdf4;
+		background-color: var(--brand-primary-dim);
 		font-weight: 600;
 	}
 
@@ -379,23 +387,23 @@
 
 	.option-label {
 		font-size: 13px;
-		color: #0f172a;
+		color: var(--text-main);
 	}
 
 	.option-subtitle {
 		font-size: 11px;
-		color: #64748b;
+		color: var(--text-subtle);
 	}
 
 	.check-icon {
-		color: var(--brand-primary, #059669);
+		color: var(--brand-primary);
 	}
 
 	.empty-option {
 		padding: 12px;
 		text-align: center;
 		font-size: 12.5px;
-		color: var(--text-muted, #94a3b8);
+		color: var(--text-muted);
 	}
 
 	.form-feedback {
@@ -404,11 +412,11 @@
 	}
 
 	.form-feedback.error {
-		color: var(--pill-danger-text, #dc2626);
+		color: var(--pill-danger-text);
 		font-weight: 500;
 	}
 
 	.form-feedback.helper {
-		color: var(--text-muted, #64748b);
+		color: var(--text-muted);
 	}
 </style>

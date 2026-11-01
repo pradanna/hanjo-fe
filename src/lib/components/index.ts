@@ -32,6 +32,7 @@ export { default as Can } from './wrappers/Can.svelte';
 export { default as Badge } from './data/Badge.svelte';
 export { default as CodeBadge } from './data/CodeBadge.svelte';
 export { default as StatusBadge } from './data/StatusBadge.svelte';
+export { default as InfoPanel } from './data/InfoPanel.svelte';
 export { default as MetricCard } from './data/MetricCard.svelte';
 export { default as StatCard } from './data/MetricCard.svelte'; // Alias kompatibilitas
 export { default as Table } from './data/Table.svelte';
@@ -44,6 +45,7 @@ export { default as Icon } from './data/Icon.svelte';
 
 // --- Feedback & Overlays ---
 export { default as Modal } from './feedback/Modal.svelte';
+export { default as Drawer } from './feedback/Drawer.svelte';
 export { default as ProgressBar } from './feedback/ProgressBar.svelte';
 export { default as Skeleton } from './feedback/Skeleton.svelte';
 export { default as EmptyState } from './feedback/EmptyState.svelte';

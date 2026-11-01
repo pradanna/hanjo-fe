@@ -19,6 +19,7 @@
 		organizations: Organization[];
 		ownerships: OutletOwnership[];
 		isPartnerEnabled?: boolean;
+		canManage?: boolean;
 		onClose: () => void;
 		onSaveOwnerships: (ownerships: OutletOwnership[]) => Promise<void>;
 	}
@@ -29,6 +30,7 @@
 		organizations,
 		ownerships,
 		isPartnerEnabled = true,
+		canManage = true,
 		onClose,
 		onSaveOwnerships
 	}: Props = $props();
@@ -94,31 +96,32 @@
 <Modal
 	{open}
 	title={outlet ? `Detail Gerai: ${outlet.name} (${outlet.code})` : 'Detail Gerai'}
+	subtitle={outlet ? `Informasi profil, parameter fiskal, penugasan pengguna, dan struktur permodalan gerai.` : undefined}
 	maxWidth="1140px"
 	onclose={onClose}
 >
 	{#snippet footer()}
-		<button type="button" class="btn btn-secondary btn-sm" onclick={onClose}>
+		<button type="button" class="btn btn-secondary" onclick={onClose}>
 			Tutup
 		</button>
 	{/snippet}
 
 	<div class="outlet-detail-layout">
 		<!-- 1. Hero Card: Identitas Gerai & Organisasi Induk -->
-		<div class="outlet-hero-card" style="padding: 14px 18px;">
-			<div class="flex items-start gap-3.5">
+		<div class="outlet-hero-card">
+			<div class="flex items-start gap-4">
 				<div class="outlet-hero-code-badge">
 					{outlet?.code}
 				</div>
-				<div class="flex flex-col gap-1">
-					<div class="flex items-center gap-2.5 flex-wrap">
-						<h3 class="font-bold text-base text-main m-0">{outlet?.name}</h3>
-						<span class="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md font-medium" style="background: var(--bg-panel); border: 1px solid var(--border-panel); color: var(--text-muted);">
+				<div class="flex flex-col gap-1.5">
+					<div class="flex items-center gap-3 flex-wrap">
+						<h3 class="font-bold text-lg text-[var(--text-main)] m-0">{outlet?.name}</h3>
+						<span class="inline-flex items-center gap-1.5 text-xs px-3 py-1 rounded-md font-medium bg-[var(--bg-panel)] border border-[var(--border-panel)] text-[var(--text-muted)]">
 							<Icon name="building-office" size={13} />
-							<span>Induk: <strong class="text-main">{parentOrg?.name || 'Organisasi Terdaftar'}</strong></span>
+							<span>Induk: <strong class="text-[var(--text-main)]">{parentOrg?.name || 'Organisasi Terdaftar'}</strong></span>
 						</span>
 					</div>
-					<div class="flex items-center gap-1.5 text-xs text-muted">
+					<div class="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
 						<Icon name="map-pin" size={13} />
 						<span>{outlet?.address || `Area ${outlet?.city || 'Indonesia'}`}</span>
 					</div>
@@ -139,57 +142,57 @@
 				<div class="detail-section">
 					<div class="detail-section-header">
 						<div class="detail-section-title">
-							<Icon name="banknotes" size={16} class="text-emerald-500" />
+							<Icon name="banknotes" size={16} class="text-[var(--brand-primary)]" />
 							<span>Parameter Operasional &amp; Finansial</span>
 						</div>
 					</div>
 
-					<div class="grid grid-cols-2 gap-2 text-xs">
+					<div class="grid grid-cols-2 gap-3.5 text-xs">
 						<div class="dash-subbox">
-							<span class="text-muted font-medium text-[11px]">Kota / Lokasi</span>
-							<p class="font-bold text-xs text-main mt-0.5">{outlet?.city || '-'}</p>
+							<span class="text-[var(--text-muted)] font-medium text-[11px]">Kota / Lokasi</span>
+							<p class="font-bold text-xs text-[var(--text-main)] mt-1 mb-0">{outlet?.city || '-'}</p>
 						</div>
 
 						<div class="dash-subbox">
-							<span class="text-muted font-medium text-[11px]">Model Kepemilikan</span>
-							<p class="font-bold text-xs text-main mt-0.5">
+							<span class="text-[var(--text-muted)] font-medium text-[11px]">Model Kepemilikan</span>
+							<p class="font-bold text-xs text-[var(--text-main)] mt-1 mb-0">
 								{outlet?.owner_type === 'partner' ? 'Kemitraan Investor' : 'Milik Sendiri (Internal)'}
 							</p>
 						</div>
 
 						<div class="dash-subbox">
-							<span class="text-muted font-medium text-[11px]">Pajak PBJT Restoran</span>
-							<p class="font-bold text-xs text-main mt-0.5">
+							<span class="text-[var(--text-muted)] font-medium text-[11px]">Pajak PBJT Restoran</span>
+							<p class="font-bold text-xs text-[var(--text-main)] mt-1 mb-0">
 								{Math.round((outlet?.tax_rate || 0.1) * 100)}%
 							</p>
 						</div>
 
 						<div class="dash-subbox">
-							<span class="text-muted font-medium text-[11px]">Service Charge</span>
-							<p class="font-bold text-xs text-main mt-0.5">
+							<span class="text-[var(--text-muted)] font-medium text-[11px]">Service Charge</span>
+							<p class="font-bold text-xs text-[var(--text-main)] mt-1 mb-0">
 								{Math.round((outlet?.service_charge || 0.05) * 100)}%
 							</p>
 						</div>
 					</div>
 
 					<!-- Kas Kecil & POS Info Strip -->
-					<div class="grid grid-cols-2 gap-2 pt-2 mt-1 border-t" style="border-color: var(--border-panel);">
-						<div class="dash-subbox flex items-center justify-between py-2 px-3 text-xs">
+					<div class="grid grid-cols-2 gap-3.5 pt-3.5 mt-2 border-t border-[var(--border-subtle)]">
+						<div class="dash-subbox flex items-center justify-between text-xs">
 							<div>
-								<span class="text-muted text-[11px] font-medium">Batas Kas Kecil:</span>
-								<p class="font-bold text-main font-mono m-0 text-xs">
+								<span class="text-[var(--text-muted)] text-[11px] font-medium">Batas Kas Kecil:</span>
+								<p class="font-bold text-[var(--text-main)] font-mono m-0 text-xs mt-0.5">
 									{formatRupiah(outlet?.petty_cash_limit || '300000.00')}
 								</p>
 							</div>
 							<Badge variant="success" size="sm">HQ Policy</Badge>
 						</div>
 
-						<div class="dash-subbox flex items-center justify-between py-2 px-3 text-xs">
+						<div class="dash-subbox flex items-center justify-between text-xs">
 							<div class="flex items-center gap-2">
-								<Icon name="device-tablet" size={15} class="text-emerald-500" />
+								<Icon name="device-tablet" size={15} class="text-[var(--brand-primary)]" />
 								<div>
-									<span class="text-muted text-[11px] font-medium">Kasir POS:</span>
-									<p class="font-bold text-xs text-emerald-600 m-0">Sinkron Real-Time</p>
+									<span class="text-[var(--text-muted)] text-[11px] font-medium">Kasir POS:</span>
+									<p class="font-bold text-xs text-[var(--brand-primary)] m-0 mt-0.5">Sinkron Real-Time</p>
 								</div>
 							</div>
 							<StatusBadge status="active" size="sm" />
@@ -201,44 +204,44 @@
 				<div class="detail-section">
 					<div class="detail-section-header">
 						<div class="detail-section-title">
-							<Icon name="users" size={16} class="text-emerald-500" />
+							<Icon name="users" size={16} class="text-[var(--brand-primary)]" />
 							<span>Tim &amp; Penugasan Gerai</span>
 						</div>
 					</div>
 
 					<!-- Multi-Outlet SM Notice Callout -->
-					<div class="detail-notice-callout" style="padding: 10px 14px;">
-						<Icon name="shield-check" size={16} class="shrink-0 mt-0.5 text-emerald-500" />
+					<div class="detail-notice-callout">
+						<Icon name="shield-check" size={16} class="shrink-0 mt-0.5 text-[var(--brand-primary)]" />
 						<span class="text-xs">
 							<strong>Penugasan Store Manager:</strong> SM dapat mengelola beberapa outlet dalam 1 organisasi (contoh: Sari mengelola Jodi Dago &amp; Gubeng).
 						</span>
 					</div>
 
 					<!-- Staff List -->
-					<div class="grid grid-cols-2 gap-2 text-xs">
-						<div class="dash-subbox flex items-center justify-between py-2 px-3">
+					<div class="grid grid-cols-2 gap-3.5 text-xs">
+						<div class="dash-subbox flex items-center justify-between">
 							<div class="flex items-center gap-2.5">
-								<div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0" style="background: var(--bg-panel-hover); color: var(--text-main); border: 1px solid var(--border-subtle);">
+								<div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 bg-[var(--bg-panel-hover)] text-[var(--text-main)] border border-[var(--border-subtle)]">
 									{outlet?.id === 'out-jkt-01' ? 'BP' : 'SR'}
 								</div>
 								<div>
-									<span class="font-bold text-main block text-xs">
+									<span class="font-bold text-[var(--text-main)] block text-xs">
 										{outlet?.id === 'out-jkt-01' ? 'Budi Santoso' : 'Sari Rahmawati'}
 									</span>
-									<p class="text-[10.5px] text-muted m-0">Store Manager</p>
+									<p class="text-[10.5px] text-[var(--text-muted)] m-0">Store Manager</p>
 								</div>
 							</div>
 							<Badge variant="info" size="sm">Aktif</Badge>
 						</div>
 
-						<div class="dash-subbox flex items-center justify-between py-2 px-3">
+						<div class="dash-subbox flex items-center justify-between">
 							<div class="flex items-center gap-2.5">
-								<div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0" style="background: var(--bg-panel-hover); color: var(--text-main); border: 1px solid var(--border-subtle);">
+								<div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 bg-[var(--bg-panel-hover)] text-[var(--text-main)] border border-[var(--border-subtle)]">
 									AF
 								</div>
 								<div>
-									<span class="font-bold text-main block text-xs">Ahmad Faisal</span>
-									<p class="text-[10.5px] text-muted m-0">Kasir Shift Siang</p>
+									<span class="font-bold text-[var(--text-main)] block text-xs">Ahmad Faisal</span>
+									<p class="text-[10.5px] text-[var(--text-muted)] m-0">Kasir Shift Siang</p>
 								</div>
 							</div>
 							<Badge variant="neutral" size="sm">Kasir</Badge>
@@ -254,7 +257,7 @@
 						<div>
 							<div class="detail-section-header mb-3">
 								<div class="detail-section-title">
-									<Icon name="clipboard-document-check" size={16} class="text-emerald-500" />
+									<Icon name="clipboard-document-check" size={16} class="text-[var(--brand-primary)]" />
 									<span>Kepemilikan Gerai &amp; Investor Mitra</span>
 								</div>
 
@@ -263,53 +266,62 @@
 										<Badge variant={ownershipEvaluation.totalSharePct === 100 ? 'success' : 'warning'} size="sm">
 											Total: {ownershipEvaluation.totalSharePct}%
 										</Badge>
-										<button
-											type="button"
-											class="btn btn-secondary btn-xs"
-											onclick={handleAddOwnerRow}
-										>
-											<Icon name="plus" size={12} />
-											<span>Tambah Investor</span>
-										</button>
+										{#if canManage}
+											<button
+												type="button"
+												class="btn btn-secondary btn-xs"
+												onclick={handleAddOwnerRow}
+											>
+												<Icon name="plus" size={12} />
+												<span>Tambah Investor</span>
+											</button>
+										{/if}
 									</div>
 								{/if}
 							</div>
 
 							{#if ownershipError}
-								<div class="p-2.5 bg-red-500/10 text-red-500 text-xs font-semibold rounded-lg border border-red-500/20 mb-3">
-									{ownershipError}
+								<div class="conflict-box mb-3">
+									<div class="conflict-title">
+										<Icon name="exclamation-triangle" size={15} />
+										<span>Peringatan Kepemilikan</span>
+									</div>
+									<p class="text-xs m-0 leading-relaxed">{ownershipError}</p>
 								</div>
 							{/if}
 
 							{#if ownershipEvaluation.hasEmptyShares && localOwnerships.length > 0}
 								<div class="warning-empty-share mb-3" id="warning-empty-share-banner">
-									<Icon name="exclamation-triangle" size={15} />
+									<Icon name="exclamation-triangle" size={16} class="shrink-0 mt-0.5" />
 									<span class="text-xs">Perhatian: Terdapat persentase kepemilikan yang belum diisi lengkap. Data tetap dapat disimpan sementara.</span>
 								</div>
 							{/if}
 
 							{#if localOwnerships.length > 0}
-								<div class="flex flex-col gap-2.5">
+								<div class="flex flex-col gap-3">
 									{#each localOwnerships as own, idx}
 										<div class="timeline-card">
 											<div class="timeline-header">
-												<span class="text-xs font-bold text-main">Investor #{idx + 1}</span>
-												<button
-													type="button"
-													class="text-xs text-red-400 hover:text-red-500 font-semibold cursor-pointer"
-													onclick={() => handleRemoveOwnerRow(idx)}
-												>
-													Hapus
-												</button>
+												<span class="text-xs font-bold text-[var(--text-main)]">Investor #{idx + 1}</span>
+												{#if canManage}
+													<button
+														type="button"
+														class="text-xs font-semibold cursor-pointer bg-transparent border-0 text-[var(--pill-danger-text)] hover:underline"
+														onclick={() => handleRemoveOwnerRow(idx)}
+													>
+														Hapus
+													</button>
+												{/if}
 											</div>
 
-											<div class="grid grid-cols-2 gap-2.5 text-xs">
+											<div class="grid grid-cols-2 gap-3.5 text-xs">
 												<div class="field-group col-span-2">
 													<label class="field-label" for="owner-name-{idx}">Nama Pemilik / Investor</label>
 													<input
 														id="owner-name-{idx}"
 														type="text"
 														class="field-input"
+														disabled={!canManage}
 														bind:value={own.owner_name}
 														placeholder="Nama Investor..."
 													/>
@@ -323,7 +335,8 @@
 														step="0.1"
 														min="0"
 														max="100"
-														class="field-input font-bold"
+														class="field-input font-bold font-mono"
+														disabled={!canManage}
 														value={own.share_pct ?? ''}
 														oninput={(e) => {
 															const val = (e.target as HTMLInputElement).value;
@@ -337,6 +350,7 @@
 													<DatePicker
 														id="owner-from-{idx}"
 														label="Berlaku Mulai"
+														disabled={!canManage}
 														bind:value={own.effective_from}
 													/>
 												</div>
@@ -346,32 +360,34 @@
 								</div>
 							{:else}
 								<!-- Kondisi Gerai Mandiri (Tanpa Investor Luar) -->
-								<div class="dash-subbox p-4 my-2 flex flex-col gap-2.5">
-									<div class="flex items-center justify-between gap-3">
+								<div class="dash-subbox p-4 my-2 flex flex-col gap-3">
+									<div class="flex items-center justify-between gap-3 flex-wrap">
 										<div class="flex items-center gap-2.5">
-											<div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background: var(--bg-panel-hover); color: var(--text-muted); border: 1px solid var(--border-subtle);">
+											<div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-[var(--bg-panel-hover)] text-[var(--text-muted)] border border-[var(--border-subtle)]">
 												<Icon name="building-storefront" size={16} />
 											</div>
-											<span class="font-bold text-main text-xs block">Gerai Milik Sendiri (Internal 100%)</span>
+											<span class="font-bold text-[var(--text-main)] text-xs block">Gerai Milik Sendiri (Internal 100%)</span>
 										</div>
-										<button
-											type="button"
-											class="btn btn-secondary btn-xs shrink-0"
-											onclick={handleAddOwnerRow}
-										>
-											<Icon name="plus" size={12} />
-											<span>Tambah Investor Luar</span>
-										</button>
+										{#if canManage}
+											<button
+												type="button"
+												class="btn btn-secondary btn-xs shrink-0"
+												onclick={handleAddOwnerRow}
+											>
+												<Icon name="plus" size={12} />
+												<span>Tambah Investor Luar</span>
+											</button>
+										{/if}
 									</div>
-									<p class="text-[12px] text-muted m-0 leading-relaxed">
+									<p class="text-xs text-[var(--text-muted)] m-0 leading-relaxed">
 										Seluruh modal dan keuntungan gerai dikelola penuh oleh entitas bisnis induk tanpa pembagian saham mitra investor luar.
 									</p>
 								</div>
 							{/if}
 						</div>
 
-						{#if localOwnerships.length > 0}
-							<div class="section-footer-action mt-3 pt-3 border-t" style="border-color: var(--border-panel);">
+						{#if localOwnerships.length > 0 && canManage}
+							<div class="section-footer-action mt-4 pt-3.5 border-t border-[var(--border-subtle)]">
 								<button
 									type="button"
 									class="btn btn-primary btn-sm w-full"

@@ -2,6 +2,7 @@
 	import type { Snippet } from 'svelte';
 
 	interface Props {
+		id?: string;
 		variant?: 'primary' | 'secondary' | 'danger' | 'outline' | 'ghost';
 		size?: 'sm' | 'md' | 'lg';
 		type?: 'button' | 'submit' | 'reset';
@@ -16,6 +17,7 @@
 	}
 
 	let {
+		id,
 		variant = 'primary',
 		size = 'md',
 		type = 'button',
@@ -32,6 +34,7 @@
 
 {#if href}
 	<a
+		{id}
 		{href}
 		{target}
 		class="btn btn-{variant} size-{size} {className}"
@@ -46,6 +49,7 @@
 	</a>
 {:else}
 	<button
+		{id}
 		{type}
 		{form}
 		class="btn btn-{variant} size-{size} {className}"

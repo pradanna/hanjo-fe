@@ -7,6 +7,7 @@
 	import Select, { type SelectOption } from '../../../components/forms/Select.svelte';
 	import TextField from '../../../components/forms/TextField.svelte';
 	import Textarea from '../../../components/forms/Textarea.svelte';
+	import Icon from '../../../components/data/Icon.svelte';
 	import type { Organization, Outlet, OutletGroup } from '../../../api/contract/types.js';
 	import { validateOutletCode } from '../../../domain/organization.js';
 
@@ -158,10 +159,14 @@
 		</button>
 	{/snippet}
 
-	<form id="outlet-form" onsubmit={handleSubmit} class="flex flex-col gap-4">
+	<form id="outlet-form" onsubmit={handleSubmit} class="flex flex-col gap-5">
 		{#if errorMessage}
-			<div class="p-3 text-xs font-semibold rounded-lg" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.25);">
-				{errorMessage}
+			<div class="conflict-box">
+				<div class="conflict-title">
+					<Icon name="exclamation-triangle" size={16} />
+					<span>Peringatan Validasi</span>
+				</div>
+				<p class="text-xs m-0 leading-relaxed">{errorMessage}</p>
 			</div>
 		{/if}
 
@@ -169,12 +174,10 @@
 		<div class="form-section-card">
 			<div class="section-card-header">
 				<div class="section-icon-badge">
-					<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M3 21h18M3 7v1a3 3 0 0 0 6 0V7m0 1a3 3 0 0 0 6 0V7m0 1a3 3 0 0 0 6 0V7H3l2-4h14l2 4M5 21V10.85M19 21V10.85M9 21v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4"/>
-					</svg>
+					<Icon name="building-storefront" size={16} />
 				</div>
 				<div class="section-meta">
-					<h4 class="section-title">Identitas & Organisasi Induk</h4>
+					<h4 class="section-title">Identitas &amp; Organisasi Induk</h4>
 					<p class="section-desc">Entitas bisnis pemilik brand, nama gerai, kode sistem unik, dan area wilayah.</p>
 				</div>
 			</div>
@@ -224,13 +227,10 @@
 		<div class="form-section-card">
 			<div class="section-card-header">
 				<div class="section-icon-badge">
-					<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/>
-						<circle cx="12" cy="10" r="3"/>
-					</svg>
+					<Icon name="map-pin" size={16} />
 				</div>
 				<div class="section-meta">
-					<h4 class="section-title">Lokasi & Kontak Gerai</h4>
+					<h4 class="section-title">Lokasi &amp; Kontak Gerai</h4>
 					<p class="section-desc">Wilayah administratif kota, nomor telepon resmi gerai, serta alamat fisik.</p>
 				</div>
 			</div>
@@ -268,16 +268,11 @@
 		<div class="form-section-card">
 			<div class="section-card-header">
 				<div class="section-icon-badge">
-					<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-						<rect x="2" y="5" width="20" height="14" rx="2"/>
-						<line x1="2" y1="10" x2="22" y2="10"/>
-						<circle cx="7" cy="15" r="1"/>
-						<line x1="11" y1="15" x2="17" y2="15"/>
-					</svg>
+					<Icon name="banknotes" size={16} />
 				</div>
 				<div class="section-meta">
-					<h4 class="section-title">Model Bisnis & Parameter Finansial</h4>
-					<p class="section-desc">Struktur kepemilikan modal, plafon kas kecil harian, serta tarif pajak & servis.</p>
+					<h4 class="section-title">Model Bisnis &amp; Parameter Finansial</h4>
+					<p class="section-desc">Struktur kepemilikan modal, plafon kas kecil harian, serta tarif pajak &amp; servis.</p>
 				</div>
 			</div>
 
@@ -323,29 +318,29 @@
 
 <style>
 	.form-section-card {
-		background: var(--bg-panel-sub, #161c28);
-		border: 1px solid var(--border-panel, #1d2535);
-		border-radius: var(--radius-lg, 12px);
-		padding: 14px 18px;
+		background: var(--bg-panel-sub);
+		border: 1px solid var(--border-panel);
+		border-radius: var(--radius-xl, 12px);
+		padding: 18px 20px;
 		display: flex;
 		flex-direction: column;
-		gap: 12px;
+		gap: 16px;
 	}
 
 	.section-card-header {
 		display: flex;
 		align-items: center;
-		gap: 10px;
-		padding-bottom: 10px;
-		border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+		gap: 12px;
+		padding-bottom: 12px;
+		border-bottom: 1px solid var(--border-subtle);
 	}
 
 	.section-icon-badge {
-		width: 30px;
-		height: 30px;
-		border-radius: var(--radius-sm, 6px);
-		background: var(--brand-primary-dim, rgba(16, 185, 129, 0.12));
-		color: var(--brand-primary, #10b981);
+		width: 32px;
+		height: 32px;
+		border-radius: var(--radius-md, 8px);
+		background: var(--brand-primary-dim);
+		color: var(--brand-primary);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -355,22 +350,22 @@
 	.section-meta {
 		display: flex;
 		flex-direction: column;
-		gap: 1px;
+		gap: 2px;
 	}
 
 	.section-title {
-		font-size: 12.5px;
-		font-weight: 600;
-		color: var(--text-main, #f1f5f9);
+		font-size: 13px;
+		font-weight: 700;
+		color: var(--text-main);
 		margin: 0;
-		line-height: 1.2;
+		line-height: 1.25;
 	}
 
 	.section-desc {
-		font-size: 11px;
-		color: var(--text-muted, #94a3b8);
+		font-size: 11.5px;
+		color: var(--text-muted);
 		margin: 0;
-		line-height: 1.3;
+		line-height: 1.35;
 	}
 
 	.section-grid {

@@ -7,6 +7,7 @@
 
 import { menuService, type MenuFilterQuery } from '../../../services/menu.service.js';
 import { catalogService } from '../../../services/catalog.service.js';
+import { sortRecipesByActiveStatus, isRecipeActive } from '../../../domain/recipe.js';
 import { session } from '../../../auth/session.svelte.js';
 import { toast } from '../../../components/feedback/toast.svelte.js';
 import type {
@@ -14,6 +15,7 @@ import type {
 	MenuCategory,
 	ModifierGroup,
 	ModifierOption,
+	NotePreset,
 	Recipe,
 	RecipeIngredient,
 	ProductionRecipe,
@@ -27,7 +29,7 @@ import type {
 
 export class MenuStore {
 	// Navigasi Tab
-	activeTab = $state<'menus' | 'categories' | 'recipes' | 'modifiers' | 'pricing' | 'availability'>('menus');
+	activeTab = $state<'menus' | 'categories' | 'recipes' | 'modifiers' | 'notes' | 'pricing' | 'availability'>('menus');
 
 	// =========================================================================
 	// 1. Data Mentah State
@@ -35,6 +37,7 @@ export class MenuStore {
 	menuItems = $state<MenuItem[]>([]);
 	categories = $state<MenuCategory[]>([]);
 	modifierGroups = $state<ModifierGroup[]>([]);
+	notePresets = $state<NotePreset[]>([]);
 	recipes = $state<Recipe[]>([]);
 	channels = $state<SalesChannel[]>([]);
 	availability = $state<MenuAvailability[]>([]);
@@ -76,6 +79,9 @@ export class MenuStore {
 
 	isModifierModalOpen = $state<boolean>(false);
 	editingModifierGroup = $state<Partial<ModifierGroup> | null>(null);
+
+	isNotePresetModalOpen = $state<boolean>(false);
+	editingNotePreset = $state<Partial<NotePreset> | null>(null);
 
 	isPricingCalculatorOpen = $state<boolean>(false);
 
@@ -138,7 +144,7 @@ export class MenuStore {
 	});
 
 	activeRecipesCount = $derived.by(() => {
-		return this.recipes.filter((r) => r.is_active).length;
+		return this.recipes.filter((r) => isRecipeActive(r)).length;
 	});
 
 	filteredRecipes = $derived.by(() => {
@@ -179,7 +185,7 @@ export class MenuStore {
 			);
 		}
 
-		return list;
+		return sortRecipesByActiveStatus(list);
 	});
 
 	filterRecipesByIngredient(ingredientIdOrName: string) {
@@ -201,10 +207,11 @@ export class MenuStore {
 		this.error = null;
 
 		try {
-			const [menus, cats, mods, rcps, chns, avails, prods, rawItems] = await Promise.all([
+			const [menus, cats, mods, notes, rcps, chns, avails, prods, rawItems] = await Promise.all([
 				menuService.getMenuItems({ outlet_id: this.selectedOutletFilter }),
 				menuService.getCategories(),
 				menuService.getModifierGroups(),
+				menuService.getNotePresets(),
 				menuService.getRecipes(),
 				menuService.getSalesChannels(),
 				menuService.getMenuAvailability({ outlet_id: this.selectedOutletFilter }),
@@ -215,6 +222,7 @@ export class MenuStore {
 			this.menuItems = menus;
 			this.categories = cats;
 			this.modifierGroups = mods;
+			this.notePresets = notes;
 			this.recipes = rcps;
 			this.channels = chns;
 			this.availability = avails;
@@ -298,6 +306,9 @@ export class MenuStore {
 				const updated = await menuService.updateMenuItem(this.editingMenuItem.id, data);
 				const idx = this.menuItems.findIndex((m) => m.id === updated.id);
 				if (idx >= 0) this.menuItems[idx] = updated;
+				if (this.selectedMenuItem?.id === updated.id) {
+					this.selectedMenuItem = updated;
+				}
 				toast.success(`Menu "${updated.name}" berhasil diperbarui.`);
 			} else {
 				const created = await menuService.createMenuItem(data);
@@ -342,6 +353,37 @@ export class MenuStore {
 			this.editingModifierGroup = null;
 		} catch (err: any) {
 			toast.error(err.message || 'Gagal menyimpan grup modifier.');
+			throw err;
+		}
+	}
+
+	async saveNotePreset(data: Partial<NotePreset>): Promise<void> {
+		try {
+			if (this.editingNotePreset?.id) {
+				const updated = await menuService.updateNotePreset(this.editingNotePreset.id, data);
+				const idx = this.notePresets.findIndex((p) => p.id === updated.id);
+				if (idx >= 0) this.notePresets[idx] = updated;
+				toast.success(`Preset catatan "${updated.name}" berhasil diperbarui.`);
+			} else {
+				const created = await menuService.createNotePreset(data);
+				this.notePresets.push(created);
+				toast.success(`Preset catatan "${created.name}" berhasil ditambahkan.`);
+			}
+			this.isNotePresetModalOpen = false;
+			this.editingNotePreset = null;
+		} catch (err: any) {
+			toast.error(err.message || 'Gagal menyimpan preset catatan dapur.');
+			throw err;
+		}
+	}
+
+	async deleteNotePreset(id: string): Promise<void> {
+		try {
+			await menuService.deleteNotePreset(id);
+			this.notePresets = this.notePresets.filter((p) => p.id !== id);
+			toast.success('Preset catatan berhasil dihapus.');
+		} catch (err: any) {
+			toast.error(err.message || 'Gagal menghapus preset catatan.');
 			throw err;
 		}
 	}

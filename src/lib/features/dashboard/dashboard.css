@@ -321,11 +321,11 @@
 	min-height: 220px;
 }
 
-:global([data-theme='dark']) .dash-card {
+[data-theme='dark'] .dash-card {
 	border-color: rgba(255, 255, 255, 0.05);
 }
 
-:global([data-theme='light']) .dash-card {
+[data-theme='light'] .dash-card {
 	border-color: rgba(0, 0, 0, 0.06);
 }
 
@@ -343,7 +343,7 @@
 	padding-bottom: 16px;
 }
 
-:global([data-theme='dark']) .card-top {
+[data-theme='dark'] .card-top {
 	border-bottom-color: rgba(255, 255, 255, 0.05);
 }
 
@@ -949,11 +949,11 @@
 	box-sizing: border-box;
 }
 
-:global([data-theme='dark']) .pulse-card {
+[data-theme='dark'] .pulse-card {
 	border-color: rgba(255, 255, 255, 0.05);
 }
 
-:global([data-theme='light']) .pulse-card {
+[data-theme='light'] .pulse-card {
 	border-color: rgba(0, 0, 0, 0.06);
 }
 
@@ -1173,7 +1173,7 @@
 	user-select: none;
 }
 
-:global([data-theme='light']) .hourly-floating-tooltip {
+[data-theme='light'] .hourly-floating-tooltip {
 	background: rgba(255, 255, 255, 0.96);
 	border: 1px solid rgba(0, 0, 0, 0.12);
 	box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
@@ -1189,7 +1189,7 @@
 	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-:global([data-theme='light']) .tooltip-top-row {
+[data-theme='light'] .tooltip-top-row {
 	border-bottom-color: rgba(0, 0, 0, 0.08);
 }
 
@@ -1371,7 +1371,7 @@
 	background: rgba(255, 255, 255, 0.04);
 }
 
-:global([data-theme='light']) .hourly-col.is-hovered {
+[data-theme='light'] .hourly-col.is-hovered {
 	background: rgba(0, 0, 0, 0.035);
 }
 
@@ -1485,7 +1485,7 @@
 	gap: 2px;
 }
 
-:global([data-theme='light']) .chart-mode-tabs {
+[data-theme='light'] .chart-mode-tabs {
 	background: var(--bg-panel-sub, #f1f5f9);
 	border-color: var(--border-panel, #e2e8f0);
 }
@@ -1510,7 +1510,7 @@
 	background: rgba(255, 255, 255, 0.05);
 }
 
-:global([data-theme='light']) .chart-tab-btn:hover {
+[data-theme='light'] .chart-tab-btn:hover {
 	background: rgba(0, 0, 0, 0.04);
 }
 
@@ -1588,7 +1588,7 @@
 	background: rgba(255, 255, 255, 0.04);
 }
 
-:global([data-theme='light']) .daily-col.is-hovered {
+[data-theme='light'] .daily-col.is-hovered {
 	background: rgba(0, 0, 0, 0.035);
 }
 
@@ -2038,7 +2038,7 @@
 	white-space: nowrap;
 }
 
-:global([data-theme='light']) .btn-view-direct {
+[data-theme='light'] .btn-view-direct {
 	background: rgba(0, 0, 0, 0.05);
 }
 
@@ -2048,7 +2048,7 @@
 	transform: translateY(-1px);
 }
 
-:global([data-theme='light']) .btn-view-direct:hover {
+[data-theme='light'] .btn-view-direct:hover {
 	background: rgba(0, 0, 0, 0.09);
 }
 
@@ -2082,7 +2082,7 @@
 	background-color: rgba(255, 255, 255, 0.03);
 }
 
-:global([data-theme='light']) .flat-alert-item:hover {
+[data-theme='light'] .flat-alert-item:hover {
 	background-color: rgba(0, 0, 0, 0.02);
 }
 

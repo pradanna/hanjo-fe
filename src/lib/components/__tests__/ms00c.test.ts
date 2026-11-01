@@ -114,6 +114,7 @@ async function runTests() {
 		'Table.svelte',
 		'MetricCard.svelte',
 		'StatusBadge.svelte',
+		'InfoPanel.svelte',
 		'Timeline.svelte',
 		'DiffViewer.svelte',
 		'FilterBar.svelte',
@@ -130,6 +131,7 @@ async function runTests() {
 
 	const feedbackComponents = [
 		'Modal.svelte',
+		'Drawer.svelte',
 		'ProgressBar.svelte',
 		'Skeleton.svelte',
 		'EmptyState.svelte',
@@ -180,6 +182,23 @@ async function runTests() {
 
 	const cleanImports = checkNoMockImports(componentsDir);
 	assert(cleanImports, 'Tidak ada komponen UI yang mengimpor langsung dari drivers/mock/*');
+
+	// -------------------------------------------------------------------------
+	// 5. Uji Katalog Komponen docs/COMPONENTS.md (UI Pre-Flight Guardrail)
+	// -------------------------------------------------------------------------
+	console.log('\n▶ Uji 5: Sinkronisasi Katalog Komponen (docs/COMPONENTS.md)');
+
+	const rootDocsPath = path.resolve(rootDir, '../docs/COMPONENTS.md');
+	const frontendDocsPath = path.resolve(rootDir, 'docs/COMPONENTS.md');
+
+	assert(fs.existsSync(rootDocsPath), 'Berkas docs/COMPONENTS.md utama tersedia');
+	assert(fs.existsSync(frontendDocsPath), 'Berkas frontend/docs/COMPONENTS.md tersedia');
+
+	const rootDocsContent = fs.readFileSync(rootDocsPath, 'utf-8');
+	assert(rootDocsContent.length > 500, 'Dokumen docs/COMPONENTS.md memuat katalog lengkap');
+	assert(rootDocsContent.includes('Button') && rootDocsContent.includes('CurrencyInput'), 'Katalog memuat komponen input forms');
+	assert(rootDocsContent.includes('Table') && rootDocsContent.includes('MetricCard'), 'Katalog memuat komponen data presentation');
+	assert(rootDocsContent.includes('Modal') && rootDocsContent.includes('Drawer'), 'Katalog memuat komponen feedback overlay');
 
 	console.log('\n========================================');
 	console.log(`Hasil Pengujian: ${passed} Lulus, ${failed} Gagal`);

@@ -76,7 +76,7 @@
 		<div>
 			<h1 class="page-title">Pusat Laporan & Analitik (Reports)</h1>
 			<p class="page-subtitle">
-				Laporan laba kotor per outlet dengan status True-Up, audit mutasi stok, dan rekapitulasi perpajakan (PRD 8.3).
+				Laporan laba kotor per outlet dengan status True-Up, audit mutasi stok, dan rekapitulasi perpajakan gerai.
 			</p>
 		</div>
 
@@ -114,7 +114,7 @@
 				<div>
 					<h3 class="box-title">Laporan Laba Kotor Multi-Outlet ({selectedPeriod})</h3>
 					<span class="box-sub">
-						HPP bahan mencerminkan True-Up HPP otomatis setelah nota resmi pemasok diverifikasi Finance.
+						HPP bahan mencerminkan True-Up HPP otomatis setelah nota resmi supplier diverifikasi Finance.
 					</span>
 				</div>
 			</div>
@@ -167,7 +167,7 @@
 				<div>
 					<h3 class="box-title">Rekapitulasi Pajak & Bukti Potong ({selectedPeriod})</h3>
 					<span class="box-sub">
-						Dasar Pengenaan Pajak (DPP) dan perhitungan pajak atas penjualan POS serta nota pembelian pemasok (PRD 6.11).
+						Dasar Pengenaan Pajak (DPP) dan perhitungan pajak atas penjualan POS serta nota pembelian supplier (PRD 6.11).
 					</span>
 				</div>
 			</div>

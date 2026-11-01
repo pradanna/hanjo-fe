@@ -108,7 +108,7 @@ export const NAVIGATION_CONFIG: NavSection[] = [
 					{ title: 'Nota Supplier (Penyesuaian Biaya)', href: '/procurement#invoices', permission: 'procurement:read', badgeKey: 'procurement.invoices_waiting', badgeVariant: 'danger' },
 					{ title: 'Daftar Tagihan (Bills)', href: '/procurement#bills', permission: 'payables:read' },
 					{ title: 'Pembayaran Hutang', href: '/procurement#payments', permission: 'payables:pay' },
-					{ title: 'Daftar Pemasok', href: '/procurement#suppliers', permission: 'procurement:read' }
+					{ title: 'Daftar Supplier', href: '/procurement#suppliers', permission: 'procurement:read' }
 				]
 			},
 			{
@@ -296,7 +296,7 @@ export const COMMAND_PALETTE_ITEMS: CommandSearchItem[] = [
 	{ title: 'Input Nota Supplier (Penyesuaian Biaya)', section: 'Operasional • Pembelian', href: '/procurement#invoices', icon: 'receipt-percent', tags: ['nota', 'foto', 'supplier invoice', 'penyesuaian biaya', 'true-up'], permission: 'procurement:read' },
 	{ title: 'Daftar Tagihan (Bills)', section: 'Operasional • Pembelian', href: '/procurement#bills', icon: 'banknotes', tags: ['tagihan', 'jatuh tempo', 'bill'], permission: 'payables:read' },
 	{ title: 'Pembayaran Hutang', section: 'Operasional • Pembelian', href: '/procurement#payments', icon: 'credit-card', tags: ['bayar', 'alokasi', 'transfer'], permission: 'payables:pay' },
-	{ title: 'Daftar Pemasok (Suppliers)', section: 'Operasional • Pembelian', href: '/procurement#suppliers', icon: 'building-office', tags: ['vendor', 'gudang pusat', 'supplier'], permission: 'procurement:read' },
+	{ title: 'Daftar Supplier', section: 'Operasional • Pembelian', href: '/procurement#suppliers', icon: 'building-office', tags: ['vendor', 'gudang pusat', 'supplier'], permission: 'procurement:read' },
 	{ title: 'Kas Kecil Outlet (Petty Cash)', section: 'Operasional • Kas', href: '/petty-cash', icon: 'wallet', tags: ['kas kecil', 'float', 'nota kecil'], permission: 'petty_cash:read' },
 	{ title: 'Biaya Pusat (HQ Expenses)', section: 'Operasional • Kas', href: '/petty-cash#hq', icon: 'building-office', tags: ['biaya pusat', 'operasional', 'hq'], permission: 'costs:read_hq' },
 	{ title: 'Penyesuaian Biaya & HPP', section: 'Keuangan', href: '/finance', icon: 'trending-up', tags: ['penyesuaian biaya', 'hpp', 'selisih', 'true-up', 'rekonsiliasi'], permission: 'finance:read' },
@@ -314,7 +314,7 @@ export const COMMAND_PALETTE_ITEMS: CommandSearchItem[] = [
 	{ title: 'Modifier & Efek Resep', section: 'Master Data', href: '/menu#modifiers', icon: 'sparkles', tags: ['modifier', 'topping', 'sugar level'], permission: 'catalog:read' },
 	{ title: 'Penetapan Harga Channel', section: 'Master Data', href: '/menu#pricing', icon: 'calculator', tags: ['harga', 'channel', 'gofood', 'grabfood'], permission: 'catalog:read' },
 	{ title: 'Ketersediaan Menu Gerai', section: 'Master Data', href: '/menu#availability', icon: 'building-storefront', tags: ['ketersediaan', 'sold out', 'stok gerai'], permission: 'catalog:read' },
-	{ title: 'Direktori Supplier & Pemasok', section: 'Master Data', href: '/suppliers', icon: 'truck', tags: ['vendor', 'gudang pusat', 'supplier', 'pemasok'], permission: 'procurement:read' },
+	{ title: 'Direktori Supplier', section: 'Master Data', href: '/suppliers', icon: 'truck', tags: ['vendor', 'gudang pusat', 'supplier'], permission: 'procurement:read' },
 	{ title: 'Daftar Outlet & Cabang', section: 'Master Data', href: '/outlets', icon: 'building-storefront', tags: ['outlet', 'cabang', 'toko'], permission: 'org:read' },
 	{ title: 'Pengaturan & Audit Trail', section: 'Sistem', href: '/settings', icon: 'cog-6-tooth', tags: ['pengaturan', 'fitur', 'audit log'], permission: 'settings:read' }
 ];

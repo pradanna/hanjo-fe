@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Icon from '#lib/components/data/Icon.svelte';
 	import {
 		MOCK_INGREDIENTS,
 		MOCK_STOCK,
@@ -38,8 +39,8 @@
 	}
 
 	const recentMovements = [
-		{ time: '14:28', type: 'OUT (POS Sale)', ref: 'TRX-JKT-01-20261012-0042', desc: 'Auto BOM: 0.036kg Biji Kopi, 0.24L Susu, 0.05L Aren, 2 Cup', user: 'POS Kasir #1' },
-		{ time: '14:15', type: 'OUT (POS Sale)', ref: 'TRX-JKT-01-20261012-0041', desc: 'Auto BOM: 0.036kg Biji Kopi, 0.12L Susu, 2 Cup', user: 'POS Kasir #1' },
+		{ time: '14:28', type: 'OUT (POS Sale)', ref: 'TRX-JKT-01-20261012-0042', desc: 'Konsumsi Resep: 0.036kg Biji Kopi, 0.24L Susu, 0.05L Aren, 2 Cup', user: 'POS Kasir #1' },
+		{ time: '14:15', type: 'OUT (POS Sale)', ref: 'TRX-JKT-01-20261012-0041', desc: 'Konsumsi Resep: 0.036kg Biji Kopi, 0.12L Susu, 2 Cup', user: 'POS Kasir #1' },
 		{ time: '11:00', type: 'IN (Purchase)', ref: 'PO-202610-001', desc: 'Penerimaan Fresh Milk Greenfield +50 Liter', user: 'Admin Purchasing' },
 		{ time: '08:00', type: 'ADJUSTMENT', ref: 'OPNAME-001', desc: 'Stok Opname Pagi Biji Kopi Arabica Gayo', user: 'Supervisor Cabang' },
 	];
@@ -53,7 +54,8 @@
 		</div>
 		<div class="header-actions">
 			<button class="btn btn-primary" onclick={() => (showAddStockModal = true)}>
-				<span>📥</span> Penerimaan Barang Masuk
+				<Icon name="arrow-down-tray" size={16} />
+				<span>Penerimaan Barang Masuk</span>
 			</button>
 		</div>
 	</header>
@@ -145,7 +147,7 @@
 		<div class="section-top">
 			<div>
 				<h2 class="table-title">Riwayat Mutasi Stok Otomatis (Audit Trail)</h2>
-				<p class="section-sub">Setiap transaksi POS otomatis mengurangi bahan baku melalui DDD Event Bus.</p>
+				<p class="section-sub">Setiap transaksi penjualan POS otomatis mengurangi stok bahan baku berdasarkan takaran resep secara real-time.</p>
 			</div>
 		</div>
 
@@ -184,7 +186,9 @@
 		<div class="glass-card modal-box" role="region" aria-label="Form Penerimaan Barang">
 			<div class="modal-head">
 				<h3 class="modal-title">Penerimaan Barang / Tambah Stok</h3>
-				<button class="close-x" onclick={() => (showAddStockModal = false)} aria-label="Tutup dialog">&times;</button>
+				<button class="close-x" onclick={() => (showAddStockModal = false)} aria-label="Tutup dialog">
+					<Icon name="x-mark" size={16} />
+				</button>
 			</div>
 
 			<div class="form-body">

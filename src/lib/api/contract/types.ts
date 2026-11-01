@@ -843,6 +843,27 @@ export interface CsvImportCommitResult {
   message: string;
 }
 
+/** Hasil Validasi & Pratinjau Impor CSV Kategori Bahan */
+export interface CategoryCsvImportPreview {
+  total_rows: number;
+  valid_rows: number;
+  error_rows: number;
+  categories_to_create: Array<{
+    row_number: number;
+    name: string;
+    code: string;
+    description: string;
+  }>;
+  categories_to_update: Array<{
+    row_number: number;
+    id: string;
+    name: string;
+    code: string;
+    description: string;
+  }>;
+  errors: CsvImportRowError[];
+}
+
 // ---------------------------------------------------------------------------
 // Katalog Menu, Varian, Modifier, Resep, Harga & Channel (MS-04)
 // ---------------------------------------------------------------------------
@@ -876,6 +897,8 @@ export interface MenuItem {
   available_until?: string; // YYYY-MM-DD atau ISO
   variants: MenuVariant[];
   modifier_group_ids: string[];
+  addon_group_ids?: string[]; // Alias Lapis 2: Pilihan Add-ons
+  preset_note_ids?: string[]; // Lapis 3: Preset Catatan Dapur (Rp 0)
   created_at: string;
   updated_at: string;
   version: number;
@@ -909,31 +932,51 @@ export interface RecipeEffect {
   serving_unit?: string; // e.g. "g", "ml", "pcs"
 }
 
-/** Opsi Pilihan dalam Grup Modifier */
+/** Opsi Pilihan dalam Grup Add-ons / Modifier (Lapis 2: Tambahan Berbayar & Potong Stok) */
 export interface ModifierOption {
   id: string;
   group_id: string;
-  name: string; // misal "Susu Oat", "Extra Shot", "Less Ice"
+  name: string; // misal "Susu Oat", "Extra Shot", "Topping Boba"
   code: string;
-  price_delta: DecimalString; // Tambahan harga dasar, misal "3000.00"
+  price_delta: DecimalString; // Tambahan harga dasar (+Rp), misal "6000.00"
   is_default: boolean;
   sort_order: number;
+  linked_stock_item_id?: string; // Tautan ke bahan baku inventory untuk pemotongan stok & HPP
+  linked_stock_item_name?: string;
+  stock_quantity?: DecimalString; // Kuantitas pakai bahan baku, misal "18.0000"
+  stock_unit?: string; // e.g. "g", "ml", "pcs"
   recipe_effects: RecipeEffect[]; // Efek ke formula resep (§6.3)
 }
 
-/** Grup Modifier (Ukuran, Level Gula, Es, Tambahan, Jenis Susu, Topping) */
+/** Grup Add-ons / Modifier (Pilihan Ekstra Berbayar) */
 export interface ModifierGroup {
   id: string;
-  name: string; // e.g. "Jenis Susu", "Level Es", "Extra Add-on"
+  name: string; // e.g. "Pilihan Susu", "Ekstra Add-on", "Topping"
   code: string;
   description?: string;
-  min_select: number; // e.g. 1 untuk pilihan wajib
+  min_select: number; // e.g. 0 untuk opsional, 1 untuk pilihan wajib
   max_select: number; // e.g. 1 untuk single choice, > 1 untuk multi select
   is_required: boolean;
+  group_type?: 'addon' | 'preference'; // Default 'addon'
   options: ModifierOption[];
   version: number;
   created_at: string;
   updated_at: string;
+}
+
+export type AddonOption = ModifierOption;
+export type AddonGroup = ModifierGroup;
+
+/** Preset Catatan Instruksi Dapur / Barista (Lapis 3: Rp 0, Tanpa Biaya) */
+export interface NotePreset {
+  id: string;
+  category: 'beverage' | 'food' | 'general';
+  name: string; // misal "Less Sugar", "No Ice", "Pedas", "Pisah Sambal", "Tanpa Sedotan"
+  code: string;
+  sort_order: number;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 /** Bahan Baku dalam Resep / BOM (Bill of Materials) */
@@ -1119,11 +1162,152 @@ export interface HppPreviewResponse {
   missing_cost_items: string[];
   total_hpp: DecimalString; // e.g. "9140.00"
   selling_price: DecimalString; // e.g. "28000.00"
+  base_price?: DecimalString; // Harga dasar sebelum modifier, e.g. "28000.00"
+  modifier_delta?: DecimalString; // Tambahan harga modifier, e.g. "5000.00"
   gross_margin_amount: DecimalString; // e.g. "18860.00"
   gross_margin_pct: DecimalString; // e.g. "67.4"
   breakdown: HppIngredientCostBreakdown[];
   warnings: string[];
 }
+
+// ---------------------------------------------------------------------------
+// Persetujuan & Mesin Evaluasi Aturan (MS-05)
+// ---------------------------------------------------------------------------
+
+export type ApprovalDocumentType =
+  | 'external_purchase_order'
+  | 'petty_cash_expense'
+  | 'menu_proposal'
+  | 'stock_count_variance'
+  | 'payment_verification'
+  | 'period_reopen'
+  | (string & {});
+
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
+export type ApprovalMode = 'any_of' | 'all_of';
+
+export interface ApprovalDecision {
+  approver_id: string;
+  approver_name: string;
+  role: string;
+  decided_at: string;
+  note?: string;
+}
+
+export interface ApprovalRejection {
+  rejected_by: string;
+  rejected_by_name: string;
+  role: string;
+  reason: string;
+  decided_at: string;
+}
+
+export interface ApprovalTimelineItem {
+  id: string;
+  action: 'submitted' | 'step_up_verified' | 'approved' | 'rejected' | 'cancelled' | 'reminded';
+  actor_id: string;
+  actor_name: string;
+  actor_role: string;
+  timestamp: string;
+  note?: string;
+}
+
+export interface ApprovalRequest {
+  id: string;
+  document_type: ApprovalDocumentType;
+  document_id: string;
+  document_version: number;
+  document_title: string;
+  document_ref: string;
+  organization_id: string;
+  outlet_id: string;
+  outlet_name?: string;
+  amount?: DecimalString | null;
+  amount_num?: number;
+  submitted_by: {
+    id: string;
+    name: string;
+    role: string;
+  };
+  status: ApprovalStatus;
+  tier: number;
+  rule_id: string;
+  rule_name?: string;
+  approver_roles: string[];
+  mode: ApprovalMode;
+  require_step_up: boolean;
+  approvals: ApprovalDecision[];
+  rejection: ApprovalRejection | null;
+  details: Record<string, any>;
+  timeline: ApprovalTimelineItem[];
+  is_overdue?: boolean;
+  created_at: string;
+  updated_at: string;
+  version: number;
+}
+
+export interface ApprovalRule {
+  id: string;
+  name: string;
+  document_type: ApprovalDocumentType;
+  organization_id: string | null;
+  outlet_id: string | null;
+  outlet_group_id?: string | null;
+  tier: number;
+  min_amount?: DecimalString | null;
+  max_amount?: DecimalString | null;
+  daily_cumulative_limit?: DecimalString | null;
+  percentage_variance_threshold?: number | null;
+  variance_amount_threshold?: DecimalString | null;
+  approver_roles: string[];
+  mode: ApprovalMode;
+  require_step_up: boolean;
+  effective_from?: string | null;
+  effective_to?: string | null;
+  is_active: boolean;
+  priority?: number;
+  description?: string;
+  created_at: string;
+  updated_at: string;
+  version: number;
+}
+
+export interface EvaluateApprovalInput {
+  document_type: ApprovalDocumentType;
+  outlet_id?: string;
+  organization_id?: string;
+  amount?: number | DecimalString;
+  daily_cumulative?: number | DecimalString;
+  variance_pct?: number;
+  variance_amount?: number | DecimalString;
+}
+
+export interface EvaluateApprovalResult {
+  requires_approval: boolean;
+  tier: number;
+  rule_id: string | null;
+  rule_name?: string;
+  approver_roles: string[];
+  mode: ApprovalMode;
+  require_step_up: boolean;
+  matched_rule?: ApprovalRule | null;
+  reason?: string;
+}
+
+export interface ApproveRequestPayload {
+  note?: string;
+  step_up_token?: string;
+}
+
+export interface RejectRequestPayload {
+  reason: string;
+  step_up_token?: string;
+}
+
+export interface CancelRequestPayload {
+  note?: string;
+}
+
 
 
 

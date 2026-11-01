@@ -1,10 +1,12 @@
 <script lang="ts">
 	/**
-	 * Detail Modal: Informasi Master Pemasok (PG-proc-suppliers)
+	 * Detail Modal: Informasi Master Supplier (PG-proc-suppliers)
 	 * Menampilkan lencana khusus Gudang Pusat dan pencegahan hapus berelasi (AC-03.7)
 	 */
 	import Modal from '#lib/components/feedback/Modal.svelte';
 	import Icon from '#lib/components/data/Icon.svelte';
+	import Badge from '#lib/components/data/Badge.svelte';
+	import InfoPanel from '#lib/components/data/InfoPanel.svelte';
 	import StatusBadge from '#lib/components/data/StatusBadge.svelte';
 	import CodeBadge from '#lib/components/data/CodeBadge.svelte';
 	import type { Supplier } from '#lib/api/contract/types.js';
@@ -24,10 +26,10 @@
 	async function handleDelete() {
 		if (!supplier) return;
 		if (supplier.has_transactions) {
-			alert(`Pemasok "${supplier.name}" memiliki riwayat transaksi/pengadaan dan tidak dapat dihapus (AC-03.7). Silakan ubah statusnya menjadi non-aktif.`);
+			alert(`Supplier "${supplier.name}" memiliki riwayat transaksi/pengadaan dan tidak dapat dihapus (AC-03.7). Silakan ubah statusnya menjadi non-aktif.`);
 			return;
 		}
-		if (confirm(`Yakin ingin menghapus pemasok "${supplier.name}" secara permanen?`)) {
+		if (confirm(`Yakin ingin menghapus supplier "${supplier.name}" secara permanen?`)) {
 			isDeleting = true;
 			await ondelete(supplier);
 			isDeleting = false;
@@ -40,33 +42,31 @@
 	<Modal
 		{open}
 		title={supplier.name}
-		subtitle={`Profil Lengkap Pemasok Kode ${supplier.code}`}
-		maxWidth="600px"
+		subtitle={`Profil Lengkap Supplier Kode ${supplier.code}`}
+		maxWidth="640px"
 		{onclose}
 	>
 		<div class="flex flex-col gap-4">
 			<!-- Header Badge Strip (AC-03.7) -->
-			<div class="p-4 rounded-xl bg-[var(--bg-panel-sub)] border border-[var(--border-subtle)] flex items-center justify-between gap-4">
-				<div class="flex items-center gap-2.5">
+			<div class="p-3.5 px-4 rounded-xl bg-[var(--bg-panel-sub)] border border-[var(--border-subtle)] flex items-center justify-between gap-3 flex-wrap">
+				<div class="flex items-center gap-2.5 flex-wrap">
 					<CodeBadge code={supplier.code} />
 					{#if supplier.type === 'hq_warehouse'}
-						<span class="pill-badge pill-info flex items-center gap-1 font-bold">
+						<Badge variant="info">
 							<Icon name="building-office-2" size={13} />
 							<span>Gudang Pusat (HQ Central Hub)</span>
-						</span>
+						</Badge>
 					{:else}
-						<span class="pill-badge pill-success">Pemasok Luar (Vendor Eksternal)</span>
+						<Badge variant="success" text="Supplier Luar (Vendor Eksternal)" />
 					{/if}
 					<StatusBadge status={supplier.status === 'active' ? 'active' : 'inactive'} />
 				</div>
 
-				<div>
+				<div class="flex items-center">
 					{#if supplier.has_transactions}
-						<span class="text-[11px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-full">
-							Ada Riwayat Transaksi
-						</span>
+						<Badge variant="warning" text="Ada Riwayat Transaksi" />
 					{:else}
-						<span class="text-[11px] text-[var(--text-subtle)]">Belum ada transaksi</span>
+						<span class="inline-flex items-center text-xs text-[var(--text-subtle)] px-2.5 py-1">Belum ada transaksi</span>
 					{/if}
 				</div>
 			</div>
@@ -74,57 +74,49 @@
 			<!-- Notice jika Gudang Pusat atau ada transaksi -->
 			{#if supplier.has_transactions}
 				<div class="detail-notice-callout warning">
-					<Icon name="shield-exclamation" size={18} />
+					<Icon name="exclamation-triangle" size={18} class="shrink-0 text-amber-400 mt-0.5" />
 					<span>
-						Pemasok ini dilindungi oleh aturan integritas finansial: entitas yang telah memiliki mutasi faktur/penerimaan barang tidak dapat dihapus dari database (AC-03.7).
+						Supplier ini dilindungi oleh aturan integritas finansial: entitas yang telah memiliki mutasi faktur/penerimaan barang tidak dapat dihapus dari database (AC-03.7).
 					</span>
 				</div>
 			{/if}
 
 			<!-- Grid Informasi -->
 			<div class="grid grid-cols-2 gap-3.5">
-				<div class="p-3.5 rounded-lg bg-[var(--bg-panel-sub)] border border-[var(--border-subtle)] flex flex-col gap-1">
-					<span class="text-[11px] text-[var(--text-subtle)] font-medium">Kontak PIC</span>
-					<span class="text-sm font-semibold text-[var(--text-main)]">
-						{supplier.contact_person || 'Tidak dicantumkan'}
-					</span>
-				</div>
+				<InfoPanel
+					title="Kontak PIC"
+					value={supplier.contact_person || 'Tidak dicantumkan'}
+				/>
 
-				<div class="p-3.5 rounded-lg bg-[var(--bg-panel-sub)] border border-[var(--border-subtle)] flex flex-col gap-1">
-					<span class="text-[11px] text-[var(--text-subtle)] font-medium">Telepon / WhatsApp</span>
-					<span class="text-sm font-semibold font-mono text-[var(--text-main)]">
-						{supplier.phone || '-'}
-					</span>
-				</div>
+				<InfoPanel
+					title="Telepon / WhatsApp"
+					value={supplier.phone || '-'}
+					monospace
+				/>
 
-				<div class="p-3.5 rounded-lg bg-[var(--bg-panel-sub)] border border-[var(--border-subtle)] flex flex-col gap-1">
-					<span class="text-[11px] text-[var(--text-subtle)] font-medium">Email Pemesanan</span>
-					<span class="text-sm font-semibold text-[var(--text-main)]">
-						{supplier.email || '-'}
-					</span>
-				</div>
+				<InfoPanel
+					title="Email Pemesanan"
+					value={supplier.email || '-'}
+				/>
 
-				<div class="p-3.5 rounded-lg bg-[var(--bg-panel-sub)] border border-[var(--border-subtle)] flex flex-col gap-1">
-					<span class="text-[11px] text-[var(--text-subtle)] font-medium">Syarat Tempo Bayar</span>
-					<span class="text-sm font-semibold text-emerald-400">
+				<InfoPanel title="Syarat Tempo Bayar">
+					<span class="text-sm font-semibold text-emerald-400 font-mono">
 						{supplier.payment_terms_days === 0 ? 'COD (Tunai saat kirim)' : `Net ${supplier.payment_terms_days} Hari`}
 					</span>
-				</div>
+				</InfoPanel>
 
-				<div class="p-3.5 rounded-lg bg-[var(--bg-panel-sub)] border border-[var(--border-subtle)] flex flex-col gap-1 col-span-2">
-					<span class="text-[11px] text-[var(--text-subtle)] font-medium">Alamat Kantor / Gudang</span>
-					<p class="text-xs text-[var(--text-main)] leading-relaxed">
+				<InfoPanel title="Alamat Kantor / Gudang" colSpan={2}>
+					<p class="text-xs text-[var(--text-main)] leading-relaxed m-0">
 						{supplier.address ? `${supplier.address}, ${supplier.city || ''}` : `Kota: ${supplier.city || '-'}`}
 					</p>
-				</div>
+				</InfoPanel>
 
 				{#if supplier.notes}
-					<div class="p-3.5 rounded-lg bg-[var(--bg-panel-sub)] border border-[var(--border-subtle)] flex flex-col gap-1 col-span-2">
-						<span class="text-[11px] text-[var(--text-subtle)] font-medium">Catatan Khusus</span>
-						<p class="text-xs text-[var(--text-muted)] leading-relaxed">
+					<InfoPanel title="Catatan Khusus" colSpan={2}>
+						<p class="text-xs text-[var(--text-muted)] leading-relaxed m-0">
 							{supplier.notes}
 						</p>
-					</div>
+					</InfoPanel>
 				{/if}
 			</div>
 		</div>
@@ -140,7 +132,7 @@
 							disabled={isDeleting}
 						>
 							<Icon name="trash" size={16} />
-							<span>Hapus Pemasok</span>
+							<span>Hapus Supplier</span>
 						</button>
 					{:else}
 						<span class="text-xs text-[var(--text-subtle)] italic">

@@ -46,12 +46,12 @@
 
 	.forbidden-card {
 		max-width: 500px;
-		background: #ffffff;
-		border: 1px solid #e2e8f0;
+		background: var(--bg-panel, #ffffff);
+		border: 1px solid var(--border-panel, #e2e8f0);
 		border-radius: var(--radius-xl, 12px);
 		padding: 36px 30px;
 		text-align: center;
-		box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+		box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -61,7 +61,7 @@
 	.status-code {
 		font-size: 64px;
 		font-weight: 900;
-		color: #dc2626;
+		color: var(--pill-danger-text, #dc2626);
 		line-height: 1;
 		font-family: var(--font-heading, sans-serif);
 	}
@@ -69,20 +69,20 @@
 	.forbidden-title {
 		font-size: 20px;
 		font-weight: 700;
-		color: #0f172a;
+		color: var(--text-main, #0f172a);
 		margin: 0;
 	}
 
 	.forbidden-desc {
 		font-size: 13.5px;
-		color: #475569;
+		color: var(--text-muted, #475569);
 		line-height: 1.5;
 		margin: 0;
 	}
 
 	.role-hint-box {
-		background: #fef2f2;
-		border: 1px solid #fecaca;
+		background: var(--pill-danger-bg, #fef2f2);
+		border: 1px solid var(--pill-danger-border, #fecaca);
 		border-radius: 10px;
 		padding: 12px 14px;
 		text-align: left;
@@ -92,13 +92,13 @@
 	.hint-title {
 		font-size: 10.5px;
 		font-weight: 700;
-		color: #991b1b;
+		color: var(--pill-danger-text, #991b1b);
 		letter-spacing: 0.5px;
 	}
 
 	.hint-text {
 		font-size: 12px;
-		color: #b91c1c;
+		color: var(--pill-danger-text, #b91c1c);
 		margin: 4px 0 0 0;
 		line-height: 1.4;
 	}
@@ -113,9 +113,9 @@
 	.btn-primary {
 		flex: 1;
 		padding: 10px;
-		background: #059669;
+		background: var(--brand-primary, #059669);
 		color: #ffffff;
-		border-radius: 8px;
+		border-radius: var(--radius-md, 8px);
 		font-weight: 600;
 		font-size: 13px;
 		text-align: center;
@@ -124,16 +124,16 @@
 	}
 
 	.btn-primary:hover {
-		background-color: #047857;
+		background-color: var(--brand-primary-hover, #047857);
 	}
 
 	.btn-switch {
 		flex: 1;
 		padding: 10px;
-		background: #f1f5f9;
-		color: #0f172a;
-		border: 1px solid #e2e8f0;
-		border-radius: 8px;
+		background: var(--bg-panel-sub, #f1f5f9);
+		color: var(--text-main, #0f172a);
+		border: 1px solid var(--border-panel, #e2e8f0);
+		border-radius: var(--radius-md, 8px);
 		font-weight: 600;
 		font-size: 13px;
 		cursor: pointer;
@@ -141,6 +141,6 @@
 	}
 
 	.btn-switch:hover {
-		background-color: #e2e8f0;
+		background-color: var(--bg-panel-hover, #e2e8f0);
 	}
 </style>

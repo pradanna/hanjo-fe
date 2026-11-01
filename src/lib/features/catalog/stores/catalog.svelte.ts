@@ -18,7 +18,8 @@ import type {
 	Supplier,
 	StockItemCostHistory,
 	CsvImportPreview,
-	CsvImportCommitResult
+	CsvImportCommitResult,
+	CategoryCsvImportPreview
 } from '../../../api/contract/types.js';
 
 export class CatalogStore {
@@ -78,13 +79,19 @@ export class CatalogStore {
 	selectedSupplierDetail = $state<Supplier | null>(null);
 
 	// =========================================================================
-	// State Wizard Impor CSV Bahan (AC-03.4)
+	// State Wizard Impor CSV Bahan (AC-03.4) & Kategori
 	// =========================================================================
 	isCsvModalOpen = $state<boolean>(false);
 	csvStep = $state<'upload' | 'mapping' | 'preview' | 'success'>('upload');
 	csvPreview = $state<CsvImportPreview | null>(null);
 	csvCommitResult = $state<CsvImportCommitResult | null>(null);
 	isCsvLoading = $state<boolean>(false);
+
+	isCategoryCsvModalOpen = $state<boolean>(false);
+	categoryCsvStep = $state<'upload' | 'preview' | 'success'>('upload');
+	categoryCsvPreview = $state<CategoryCsvImportPreview | null>(null);
+	categoryCsvCommitResult = $state<CsvImportCommitResult | null>(null);
+	isCategoryCsvLoading = $state<boolean>(false);
 
 	// Loading & Global Error states
 	isLoading = $state<boolean>(false);
@@ -424,16 +431,16 @@ export class CatalogStore {
 				const idx = this.suppliers.findIndex((s) => s.id === updated.id);
 				if (idx !== -1) this.suppliers[idx] = updated;
 				if (this.selectedSupplierDetail?.id === updated.id) this.selectedSupplierDetail = updated;
-				toast.success(`Pemasok "${updated.name}" berhasil diperbarui`);
+				toast.success(`Supplier "${updated.name}" berhasil diperbarui`);
 			} else {
 				const created = await supplierService.createSupplier(data);
 				this.suppliers = [created, ...this.suppliers];
-				toast.success(`Pemasok "${created.name}" berhasil ditambahkan`);
+				toast.success(`Supplier "${created.name}" berhasil ditambahkan`);
 			}
 			this.closeSupplierModal();
 			return true;
 		} catch (err: any) {
-			toast.error(err?.message || 'Gagal menyimpan pemasok');
+			toast.error(err?.message || 'Gagal menyimpan supplier');
 			return false;
 		}
 	}
@@ -445,10 +452,10 @@ export class CatalogStore {
 			if (this.selectedSupplierDetail?.id === supplier.id) {
 				this.selectedSupplierDetail = null;
 			}
-			toast.success(`Pemasok "${supplier.name}" berhasil dihapus`);
+			toast.success(`Supplier "${supplier.name}" berhasil dihapus`);
 			return true;
 		} catch (err: any) {
-			toast.error(err?.message || 'Gagal menghapus pemasok');
+			toast.error(err?.message || 'Gagal menghapus supplier');
 			return false;
 		}
 	}
@@ -520,6 +527,71 @@ export class CatalogStore {
 		link.click();
 		document.body.removeChild(link);
 		toast.info('Berkas daftar galat CSV berhasil diunduh');
+	}
+
+	// =========================================================================
+	// Wizard Impor CSV Kategori
+	// =========================================================================
+
+	openCategoryCsvModal(): void {
+		this.isCategoryCsvModalOpen = true;
+		this.categoryCsvStep = 'upload';
+		this.categoryCsvPreview = null;
+		this.categoryCsvCommitResult = null;
+		this.isCategoryCsvLoading = false;
+	}
+
+	closeCategoryCsvModal(): void {
+		this.isCategoryCsvModalOpen = false;
+	}
+
+	async runCategoryCsvPreview(): Promise<void> {
+		this.isCategoryCsvLoading = true;
+		try {
+			const res = await catalogService.previewCategoryCsvImport();
+			this.categoryCsvPreview = res;
+			this.categoryCsvStep = 'preview';
+		} catch (err: unknown) {
+			toast.error(err instanceof Error ? err.message : 'Gagal memvalidasi berkas CSV kategori');
+		} finally {
+			this.isCategoryCsvLoading = false;
+		}
+	}
+
+	async runCategoryCsvCommit(): Promise<void> {
+		this.isCategoryCsvLoading = true;
+		try {
+			const res = await catalogService.commitCategoryCsvImport();
+			this.categoryCsvCommitResult = res;
+			this.categoryCsvStep = 'success';
+			await this.loadAll();
+			toast.success(res.message || 'Kategori berhasil diimpor');
+		} catch (err: unknown) {
+			toast.error(err instanceof Error ? err.message : 'Gagal mengommit impor kategori');
+		} finally {
+			this.isCategoryCsvLoading = false;
+		}
+	}
+
+	downloadCategoryCsvErrors(): void {
+		if (!this.categoryCsvPreview || this.categoryCsvPreview.errors.length === 0) return;
+		const headers = ['Baris', 'Kode_Galat', 'Kolom', 'Pesan_Galat', 'Data_Mentah'];
+		const rows = this.categoryCsvPreview.errors.map((e) => [
+			e.row_number,
+			e.code,
+			e.field,
+			`"${e.message.replace(/"/g, '""')}"`,
+			`"${JSON.stringify(e.raw_data).replace(/"/g, '""')}"`
+		]);
+		const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+		const encodedUri = encodeURI(csvContent);
+		const link = document.createElement('a');
+		link.setAttribute('href', encodedUri);
+		link.setAttribute('download', `galat_impor_kategori_${Date.now()}.csv`);
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		toast.info('Berkas daftar galat CSV kategori berhasil diunduh');
 	}
 }
 

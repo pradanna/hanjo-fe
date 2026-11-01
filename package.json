@@ -12,7 +12,7 @@
 		"check:imports": "node scripts/check-import-boundaries.js",
 		"check:demo": "npx tsx scripts/check-demo-consistency.ts",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"test": "npx tsx src/lib/components/__tests__/ms00c.test.ts && npx tsx src/lib/components/__tests__/ms00d.test.ts && npx tsx src/lib/components/__tests__/ms01a.test.ts && npx tsx src/lib/components/__tests__/ms01bc.test.ts && npx tsx src/lib/components/__tests__/ms01d.test.ts && npx tsx src/lib/components/__tests__/ms02.test.ts && npx tsx src/lib/components/__tests__/ms03.test.ts && npx tsx src/lib/components/__tests__/ms04.test.ts"
+		"test": "npx tsx src/lib/components/__tests__/ms00c.test.ts && npx tsx src/lib/components/__tests__/ms00d.test.ts && npx tsx src/lib/components/__tests__/ms01a.test.ts && npx tsx src/lib/components/__tests__/ms01bc.test.ts && npx tsx src/lib/components/__tests__/ms01d.test.ts && npx tsx src/lib/components/__tests__/ms02.test.ts && npx tsx src/lib/components/__tests__/ms03.test.ts && npx tsx src/lib/components/__tests__/ms04.test.ts && npx tsx src/lib/components/__tests__/ms05.test.ts"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^8.0.0",

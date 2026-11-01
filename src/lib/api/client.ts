@@ -215,6 +215,7 @@ export interface Product {
 	image_url: string;
 	variants: Variant[];
 	modifier_groups: ModifierGroup[];
+	preset_notes?: string[];
 }
 
 export interface Ingredient {
@@ -285,6 +286,7 @@ export interface CartItem {
 	quantity: number;
 	unit_price: number;
 	modifiers: CartModifier[];
+	notes?: string[];
 	subtotal: number;
 	note: string;
 }
@@ -369,9 +371,188 @@ export const MOCK_PRODUCTS: Product[] = [
 					{ ingredient_id: 'ing-3', ingredient_name: 'Gula Aren Organik Cair', quantity: 0.02, unit: 'liter' },
 					{ ingredient_id: 'ing-5', ingredient_name: 'Cup Plastik 16oz + Straw', quantity: 1, unit: 'pcs' }
 				]
+			},
+			{
+				id: 'var-aren-lrg',
+				name: 'Large 22oz',
+				sku: 'COF-AREN-01-LRG',
+				price: 34000,
+				cost: 11500,
+				is_default: false,
+				sort_order: 2,
+				recipes: [
+					{ ingredient_id: 'ing-1', ingredient_name: 'Biji Kopi Arabica Aceh Gayo', quantity: 0.024, unit: 'kg' },
+					{ ingredient_id: 'ing-2', ingredient_name: 'Susu Fresh Milk Greenfield', quantity: 0.22, unit: 'liter' },
+					{ ingredient_id: 'ing-3', ingredient_name: 'Gula Aren Organik Cair', quantity: 0.03, unit: 'liter' }
+				]
 			}
 		],
-		modifier_groups: []
+		modifier_groups: [
+			{
+				id: 'mg-addons',
+				name: 'Pilihan Add-ons & Ekstra',
+				is_required: false,
+				max_select: 4,
+				sort_order: 1,
+				options: [
+					{ id: 'opt-shot', name: 'Extra Espresso Shot', price_adjustment: 6000, sort_order: 1 },
+					{ id: 'opt-boba', name: 'Topping Boba Brown Sugar', price_adjustment: 4000, sort_order: 2 },
+					{ id: 'opt-oat', name: 'Upgrade Oat Milk', price_adjustment: 5000, sort_order: 3 },
+					{ id: 'opt-jelly', name: 'Grass Jelly', price_adjustment: 4000, sort_order: 4 }
+				]
+			}
+		],
+		preset_notes: [
+			'Less Sugar (50%)',
+			'Normal Sugar',
+			'No Sugar (0%)',
+			'Less Ice',
+			'No Ice',
+			'Tanpa Sedotan'
+		]
+	},
+	{
+		id: 'prod-2',
+		category_id: 'cat-2',
+		category_name: 'Espresso Based',
+		sku: 'COF-AMER-01',
+		name: 'Americano Nusantara',
+		description: 'Double shot espresso Aceh Gayo dipadu dengan air mineral dingin segar beraroma floral.',
+		product_type: 'single',
+		status: 'active',
+		image_url: '🧊',
+		variants: [
+			{
+				id: 'var-amer-iced',
+				name: 'Iced Americano',
+				sku: 'COF-AMER-01-ICE',
+				price: 22000,
+				cost: 5800,
+				is_default: true,
+				sort_order: 1
+			},
+			{
+				id: 'var-amer-hot',
+				name: 'Hot Americano',
+				sku: 'COF-AMER-01-HOT',
+				price: 20000,
+				cost: 5200,
+				is_default: false,
+				sort_order: 2
+			}
+		],
+		modifier_groups: [
+			{
+				id: 'mg-amer-addons',
+				name: 'Pilihan Add-ons & Ekstra',
+				is_required: false,
+				max_select: 3,
+				sort_order: 1,
+				options: [
+					{ id: 'opt-amer-shot', name: 'Extra Espresso Shot', price_adjustment: 6000, sort_order: 1 },
+					{ id: 'opt-amer-syrp', name: 'Vanilla Syrup Shot', price_adjustment: 5000, sort_order: 2 }
+				]
+			}
+		],
+		preset_notes: [
+			'Extra Bitter',
+			'Less Water',
+			'No Ice',
+			'Tanpa Sedotan'
+		]
+	},
+	{
+		id: 'prod-3',
+		category_id: 'cat-3',
+		category_name: 'Non-Coffee',
+		sku: 'NON-MATCHA-01',
+		name: 'Kyoto Uji Matcha Latte',
+		description: 'Bubuk matcha murni dari Uji, Kyoto diseduh dengan susu segar lembut dan manis seimbang.',
+		product_type: 'single',
+		status: 'active',
+		image_url: '🍵',
+		variants: [
+			{
+				id: 'var-matcha-iced',
+				name: 'Iced Matcha',
+				sku: 'NON-MATCHA-ICE',
+				price: 32000,
+				cost: 11200,
+				is_default: true,
+				sort_order: 1
+			},
+			{
+				id: 'var-matcha-hot',
+				name: 'Hot Matcha',
+				sku: 'NON-MATCHA-HOT',
+				price: 30000,
+				cost: 10500,
+				is_default: false,
+				sort_order: 2
+			}
+		],
+		modifier_groups: [
+			{
+				id: 'mg-matcha-addons',
+				name: 'Pilihan Add-ons & Ekstra',
+				is_required: false,
+				max_select: 3,
+				sort_order: 1,
+				options: [
+					{ id: 'opt-matcha-oat', name: 'Upgrade Oat Milk', price_adjustment: 5000, sort_order: 1 },
+					{ id: 'opt-matcha-boba', name: 'Topping Boba', price_adjustment: 4000, sort_order: 2 }
+				]
+			}
+		],
+		preset_notes: [
+			'Less Sugar (50%)',
+			'No Sugar',
+			'Less Ice',
+			'Extra Matcha (+Pahit)',
+			'Tanpa Sedotan'
+		]
+	},
+	{
+		id: 'prod-4',
+		category_id: 'cat-4',
+		category_name: 'Pastry & Bakery',
+		sku: 'BAK-CROIS-01',
+		name: 'Butter Croissant Artisan',
+		description: 'Pastry khas Prancis berlapis renyah dengan aroma mentega murni dari Elle & Vire.',
+		product_type: 'single',
+		status: 'active',
+		image_url: '🥐',
+		variants: [
+			{
+				id: 'var-crois-std',
+				name: 'Standard Piece',
+				sku: 'BAK-CROIS-01-STD',
+				price: 24000,
+				cost: 11000,
+				is_default: true,
+				sort_order: 1
+			}
+		],
+		modifier_groups: [
+			{
+				id: 'mg-crois-addons',
+				name: 'Pilihan Selai & Saus',
+				is_required: false,
+				max_select: 3,
+				sort_order: 1,
+				options: [
+					{ id: 'opt-crois-jam', name: 'Extra Strawberry Jam', price_adjustment: 4000, sort_order: 1 },
+					{ id: 'opt-crois-butter', name: 'Extra Salted Butter', price_adjustment: 3000, sort_order: 2 },
+					{ id: 'opt-crois-cheese', name: 'Keju Melted Slice', price_adjustment: 5000, sort_order: 3 }
+				]
+			}
+		],
+		preset_notes: [
+			'Hangatkan (Warm)',
+			'Jangan Dihangatkan',
+			'Pisah Selai',
+			'Potong 2 Bagian'
+		]
 	}
 ];
 

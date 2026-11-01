@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { lockScroll, unlockScroll } from '../../utils/scrollLock.js';
 
 	interface Props {
 		open?: boolean;
@@ -22,6 +23,15 @@
 		children,
 		footer
 	}: Props = $props();
+
+	$effect(() => {
+		if (open) {
+			lockScroll();
+			return () => {
+				unlockScroll();
+			};
+		}
+	});
 
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape' && open && onclose) {
@@ -101,6 +111,7 @@
 		justify-content: center;
 		padding: 20px;
 		animation: fadeIn 0.15s ease-out;
+		overscroll-behavior: contain;
 	}
 
 	@keyframes fadeIn {
@@ -119,6 +130,7 @@
 		flex-direction: column;
 		max-height: calc(100vh - 40px);
 		animation: scaleUp 0.15s ease-out;
+		overscroll-behavior: contain;
 	}
 
 	@keyframes scaleUp {
@@ -176,6 +188,7 @@
 		padding: 24px;
 		overflow-y: auto;
 		flex: 1;
+		overscroll-behavior: contain;
 	}
 
 	.modal-footer {

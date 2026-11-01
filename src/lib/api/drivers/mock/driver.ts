@@ -17,6 +17,7 @@ import { registerEodHandlers } from './handlers/eod.js';
 import { registerOrganizationHandlers } from './handlers/organization.js';
 import { registerCatalogHandlers } from './handlers/catalog.js';
 import { registerMenuHandlers } from './handlers/menu.js';
+import { registerApprovalHandlers } from './handlers/approval.js';
 
 export class MockDriver implements DataDriver {
 	async request<T>(req: ApiRequest): Promise<ApiResponse<T>> {
@@ -79,3 +80,4 @@ registerEodHandlers();
 registerOrganizationHandlers();
 registerCatalogHandlers();
 registerMenuHandlers();
+registerApprovalHandlers();

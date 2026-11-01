@@ -3,7 +3,7 @@
 	 * Forwarder kompatibilitas rute /catalog ke modul baru:
 	 * - /materials (Master Bahan: Bahan Baku, Kategori, Satuan)
 	 * - /menu (Menu & Resep: Menu, Varian, Resep, Modifier, Harga, Ketersediaan)
-	 * - /suppliers (Direktori Pemasok)
+	 * - /suppliers (Direktori Supplier)
 	 */
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';

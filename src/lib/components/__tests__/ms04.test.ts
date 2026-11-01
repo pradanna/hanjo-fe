@@ -2,7 +2,14 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { calculateChannelPrice, applyRounding } from '../../domain/pricing.js';
-import { resolveRecipe, validateRecipeOverlap, applyModifierEffects } from '../../domain/recipe.js';
+import {
+	resolveRecipe,
+	validateRecipeOverlap,
+	applyModifierEffects,
+	isRecipeActive,
+	sortRecipesByActiveStatus,
+	formatRecipeEffect
+} from '../../domain/recipe.js';
 import { calculateVariantHpp } from '../../domain/hpp.js';
 import { validateModifierGroup, isMenuItemVisibleForOutlet } from '../../domain/menu.js';
 import { menuService } from '../../services/menu.service.js';
@@ -303,6 +310,19 @@ describe('MS-04: Logika Domain Murni Menu, Varian, Modifier, Resep & Pricing', (
 			assert.equal(validation.isValid, false);
 			assert.ok(validation.conflictReason?.includes('rcp-aren-v1'));
 		});
+
+		it('Pengurutan Resep: Resep aktif di atas dan resep historis/kedaluwarsa di bawah', () => {
+			const atTime = '2026-08-01T00:00:00Z';
+			// v1 (kedaluwarsa 2026-06-01) harus false pada 2026-08-01
+			assert.equal(isRecipeActive(recipes[0], atTime), false);
+			// v2 (berlaku sejak 2026-06-01, tanpa effective_until) harus true
+			assert.equal(isRecipeActive(recipes[1], atTime), true);
+
+			// Pengurutan: v2 dan gubeng-override (keduanya aktif) harus di atas v1 (historis)
+			const sorted = sortRecipesByActiveStatus(recipes, atTime);
+			assert.equal(sorted[sorted.length - 1].id, 'rcp-aren-v1'); // Historis berada di paling bawah
+			assert.equal(isRecipeActive(sorted[0], atTime), true); // Yang paling atas adalah aktif
+		});
 	});
 
 	// =========================================================================
@@ -442,6 +462,65 @@ describe('MS-04: Logika Domain Murni Menu, Varian, Modifier, Resep & Pricing', (
 			assert.ok(res.warnings[0].includes('tidak ditemukan'));
 			// Bahan asli tidak terganggu
 			assert.equal(res.effectiveIngredients.length, 3);
+		});
+
+		it('formatRecipeEffect menghasilkan label operasional ramah pengguna tanpa jargon teknis', () => {
+			// 1. Replace
+			const replaceEff = formatRecipeEffect({
+				type: 'replace',
+				target_stock_item_id: 'item-sus-01',
+				target_stock_item_name: 'Susu Fresh Milk',
+				replacement_stock_item_id: 'item-sus-02',
+				replacement_stock_item_name: 'Susu Oat Oatly'
+			});
+			assert.equal(replaceEff.badgeLabel, 'Substitusi');
+			assert.equal(replaceEff.detailText, 'Susu Fresh Milk ➔ Susu Oat Oatly');
+			assert.equal(replaceEff.badgeClass, 'modifier-effect-replace');
+
+			// 2. Add
+			const addEff = formatRecipeEffect({
+				type: 'add',
+				target_stock_item_id: 'item-kop-01',
+				target_stock_item_name: 'Espresso Blend',
+				added_quantity: '18.0000',
+				serving_unit: 'g'
+			});
+			assert.equal(addEff.badgeLabel, 'Tambah');
+			assert.equal(addEff.detailText, '+18 g Espresso Blend');
+			assert.equal(addEff.badgeClass, 'modifier-effect-add');
+
+			// 3. Multiply less (50%)
+			const multLessEff = formatRecipeEffect({
+				type: 'multiply',
+				target_stock_item_id: 'item-srp-01',
+				target_stock_item_name: 'Gula Aren',
+				multiplier: '0.5000'
+			});
+			assert.equal(multLessEff.badgeLabel, 'Takaran');
+			assert.equal(multLessEff.detailText, '50% Gula Aren');
+			assert.equal(multLessEff.badgeClass, 'modifier-effect-multiply');
+
+			// 4. Multiply zero (0% / Tanpa Bahan)
+			const multZeroEff = formatRecipeEffect({
+				type: 'multiply',
+				target_stock_item_id: 'item-srp-01',
+				target_stock_item_name: 'Gula Aren',
+				multiplier: '0.0000'
+			});
+			assert.equal(multZeroEff.badgeLabel, 'Tanpa Bahan');
+			assert.equal(multZeroEff.detailText, '0% (Tanpa Gula Aren)');
+			assert.equal(multZeroEff.badgeClass, 'modifier-effect-zero');
+
+			// 5. Multiply extra (>1)
+			const multExtraEff = formatRecipeEffect({
+				type: 'multiply',
+				target_stock_item_id: 'item-kop-01',
+				target_stock_item_name: 'Espresso Blend',
+				multiplier: '1.2500'
+			});
+			assert.equal(multExtraEff.badgeLabel, 'Porsi Ekstra');
+			assert.equal(multExtraEff.detailText, '1.25× Espresso Blend');
+			assert.equal(multExtraEff.badgeClass, 'modifier-effect-multiply');
 		});
 	});
 

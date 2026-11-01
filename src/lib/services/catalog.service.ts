@@ -14,7 +14,8 @@ import type {
 	UnitConversion,
 	StockItemCostHistory,
 	CsvImportPreview,
-	CsvImportCommitResult
+	CsvImportCommitResult,
+	CategoryCsvImportPreview
 } from '../api/contract/types.js';
 
 export interface CatalogFilterQuery {
@@ -120,6 +121,18 @@ export class CatalogService {
 
 	async commitCsvImport(payload?: Record<string, unknown>): Promise<CsvImportCommitResult> {
 		return apiClient.post<CsvImportCommitResult>(Endpoints.CATALOG.CSV_COMMIT, payload || {});
+	}
+
+	// =========================================================================
+	// 5. Wizard Impor CSV Kategori Bahan
+	// =========================================================================
+
+	async previewCategoryCsvImport(payload?: Record<string, unknown>): Promise<CategoryCsvImportPreview> {
+		return apiClient.post<CategoryCsvImportPreview>(Endpoints.CATALOG.CATEGORY_CSV_PREVIEW, payload || {});
+	}
+
+	async commitCategoryCsvImport(payload?: Record<string, unknown>): Promise<CsvImportCommitResult> {
+		return apiClient.post<CsvImportCommitResult>(Endpoints.CATALOG.CATEGORY_CSV_COMMIT, payload || {});
 	}
 }
 

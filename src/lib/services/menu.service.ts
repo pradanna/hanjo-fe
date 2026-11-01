@@ -12,6 +12,7 @@ import type {
 	MenuCategory,
 	ModifierGroup,
 	ModifierOption,
+	NotePreset,
 	Recipe,
 	ProductionRecipe,
 	SalesChannel,
@@ -89,6 +90,25 @@ export class MenuService {
 
 	async updateModifierGroup(id: string, data: Partial<ModifierGroup>): Promise<ModifierGroup> {
 		return apiClient.put<ModifierGroup>(Endpoints.MENU.MODIFIER_GROUP_DETAIL(id), data);
+	}
+
+	// --------------------------------------------------------------------------
+	// 2.1 Preset Catatan Dapur / Barista (Lapis 3: Rp 0)
+	// --------------------------------------------------------------------------
+	async getNotePresets(): Promise<NotePreset[]> {
+		return apiClient.get<NotePreset[]>(Endpoints.MENU.NOTE_PRESETS);
+	}
+
+	async createNotePreset(data: Partial<NotePreset>): Promise<NotePreset> {
+		return apiClient.post<NotePreset>(Endpoints.MENU.NOTE_PRESETS, data);
+	}
+
+	async updateNotePreset(id: string, data: Partial<NotePreset>): Promise<NotePreset> {
+		return apiClient.put<NotePreset>(Endpoints.MENU.NOTE_PRESET_DETAIL(id), data);
+	}
+
+	async deleteNotePreset(id: string): Promise<void> {
+		return apiClient.delete<void>(Endpoints.MENU.NOTE_PRESET_DETAIL(id));
 	}
 
 	// --------------------------------------------------------------------------

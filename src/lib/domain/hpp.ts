@@ -38,6 +38,8 @@ export interface CalculateHppParams {
 	recipeScope?: 'standard' | 'outlet_override';
 	ingredients: Array<EffectiveIngredient | RecipeIngredient>;
 	costMap: Record<string, IngredientCostLookup>; // stock_item_id -> { unitCost, costSource }
+	basePrice?: number | string;
+	modifierDelta?: number | string;
 	sellingPrice?: number | string;
 	warnings?: string[];
 }
@@ -55,6 +57,8 @@ export function calculateVariantHpp(params: CalculateHppParams): HppPreviewRespo
 		recipeScope = 'standard',
 		ingredients,
 		costMap,
+		basePrice,
+		modifierDelta,
 		sellingPrice = 0,
 		warnings = []
 	} = params;
@@ -111,6 +115,16 @@ export function calculateVariantHpp(params: CalculateHppParams): HppPreviewRespo
 
 	const isComplete = missingCostItems.length === 0;
 
+	const basePriceNum =
+		basePrice !== undefined
+			? typeof basePrice === 'string' ? parseFloat(basePrice) || 0 : Number(basePrice)
+			: undefined;
+
+	const modifierDeltaNum =
+		modifierDelta !== undefined
+			? typeof modifierDelta === 'string' ? parseFloat(modifierDelta) || 0 : Number(modifierDelta)
+			: undefined;
+
 	const sellingPriceNum =
 		typeof sellingPrice === 'string' ? parseFloat(sellingPrice) || 0 : Number(sellingPrice);
 
@@ -129,6 +143,8 @@ export function calculateVariantHpp(params: CalculateHppParams): HppPreviewRespo
 		missing_cost_items: missingCostItems,
 		total_hpp: totalHppNumber.toFixed(2),
 		selling_price: sellingPriceNum.toFixed(2),
+		base_price: basePriceNum !== undefined ? basePriceNum.toFixed(2) : undefined,
+		modifier_delta: modifierDeltaNum !== undefined ? modifierDeltaNum.toFixed(2) : undefined,
 		gross_margin_amount: grossMarginAmountNum.toFixed(2),
 		gross_margin_pct: grossMarginPctNum.toFixed(1), // format "67.4"
 		breakdown,

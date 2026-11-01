@@ -69,7 +69,9 @@ export const Endpoints = {
 		SUPPLIERS: '/api/v1/suppliers',
 		SUPPLIER_DETAIL: (id: string) => `/api/v1/suppliers/${id}`,
 		CSV_PREVIEW: '/api/v1/imports/stock-items/preview',
-		CSV_COMMIT: '/api/v1/imports/stock-items/commit'
+		CSV_COMMIT: '/api/v1/imports/stock-items/commit',
+		CATEGORY_CSV_PREVIEW: '/api/v1/imports/categories/preview',
+		CATEGORY_CSV_COMMIT: '/api/v1/imports/categories/commit'
 	},
 
 	// Menu, Resep & Harga (MS-04)
@@ -83,6 +85,8 @@ export const Endpoints = {
 		MODIFIER_GROUP_DETAIL: (id: string) => `/api/v1/modifier-groups/${id}`,
 		MODIFIER_OPTIONS: (groupId: string) => `/api/v1/modifier-groups/${groupId}/options`,
 		MODIFIER_OPTION_DETAIL: (id: string) => `/api/v1/modifier-options/${id}`,
+		NOTE_PRESETS: '/api/v1/note-presets',
+		NOTE_PRESET_DETAIL: (id: string) => `/api/v1/note-presets/${id}`,
 		RECIPES: '/api/v1/recipes',
 		RECIPE_DETAIL: (id: string) => `/api/v1/recipes/${id}`,
 		RECIPE_RESOLVE: '/api/v1/recipes/resolve',
@@ -107,6 +111,7 @@ export const Endpoints = {
 		REJECT: (id: string) => `/api/v1/approval-requests/${id}/actions/reject`,
 		CANCEL: (id: string) => `/api/v1/approval-requests/${id}/actions/cancel`,
 		RULES: '/api/v1/approval-rules',
+		RULE_DETAIL: (id: string) => `/api/v1/approval-rules/${id}`,
 		EVALUATE: '/api/v1/approval-rules/evaluate'
 	},
 

@@ -305,6 +305,39 @@ export function validateCsvRow(
 }
 
 /**
+ * Validasi baris CSV pada wizard impor kategori bahan.
+ */
+export function validateCategoryCsvRow(
+	row: Record<string, string>,
+	rowNumber: number,
+	existingCodes: Set<string>
+): { valid: boolean; errors: string[] } {
+	const errors: string[] = [];
+
+	const name = row['name']?.trim() || row['Nama']?.trim();
+	const code = row['code']?.trim() || row['Kode']?.trim();
+
+	if (!name) {
+		errors.push('Nama kategori wajib diisi');
+	}
+
+	if (code) {
+		const codeVal = validateItemCode(code);
+		if (!codeVal.valid) {
+			errors.push(codeVal.message!);
+		}
+		if (existingCodes.has(code.toUpperCase())) {
+			errors.push(`Kode kategori "${code}" sudah terdaftar dalam sistem`);
+		}
+	}
+
+	return {
+		valid: errors.length === 0,
+		errors
+	};
+}
+
+/**
  * Evaluasi status ketersediaan/level stok bahan baku.
  * Mengembalikan:
  * - 'out_of_stock': jika total stok fisik <= 0 (Habis)

@@ -163,8 +163,8 @@ export function registerAuthHandlers(): void {
 		const body = (ctx.req.body || {}) as { password?: string; pin?: string };
 		const pass = body.password || body.pin;
 
-		// Default demo password/pin adalah "123456" atau "hanjo123"
-		if (pass !== '123456' && pass !== 'hanjo123') {
+		// Default demo password/pin adalah "123456", "hanjo123", atau "demo" (§MS-05)
+		if (pass !== '123456' && pass !== 'hanjo123' && pass !== 'demo') {
 			throw ApiErrors.validationError(
 				[
 					{

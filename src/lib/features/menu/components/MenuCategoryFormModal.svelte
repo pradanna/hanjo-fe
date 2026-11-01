@@ -183,7 +183,7 @@
 	.status-toggle-label {
 		font-size: 13px;
 		font-weight: 500;
-		color: var(--text-main, #f1f5f9);
+		color: var(--text-main);
 	}
 
 	.toggle-switch-wrapper {
@@ -197,11 +197,11 @@
 	.toggle-checkbox {
 		width: 18px;
 		height: 18px;
-		accent-color: var(--color-primary, #10b981);
+		accent-color: var(--brand-primary);
 		cursor: pointer;
 	}
 
 	.toggle-text {
-		color: var(--text-main, #f1f5f9);
+		color: var(--text-main);
 	}
 </style>

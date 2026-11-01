@@ -5,7 +5,9 @@
 
 import { router } from '../engine/router.js';
 import { clock } from '../engine/clock.js';
-import type { NavBadges, NotificationItem, SearchResultItem } from '../../../contract/types.js';
+import { getCurrentMockUser, DEMO_USERS_BY_ROLE } from './auth.js';
+import { getPendingApprovalsCountForUser } from './approval.js';
+import type { NavBadges, NotificationItem, SearchResultItem, UserRole, User } from '../../../contract/types.js';
 
 // In-memory notifications state untuk demo
 let mockNotifications: NotificationItem[] = [
@@ -50,12 +52,31 @@ let mockNotifications: NotificationItem[] = [
 export function registerNavHandlers(): void {
 	// GET /api/v1/nav/badges
 	router.register('GET', '/api/v1/nav/badges', async (ctx) => {
-		const role = (ctx.req.query?.role as string) || 'owner';
+		const currentUser = getCurrentMockUser();
+		const roleQuery = ctx.req.query?.role as string;
+		const role = roleQuery || currentUser?.role || 'owner';
+		const targetUser: User = roleQuery
+			? {
+					id: roleQuery === 'store_manager' ? 'usr-budi' : roleQuery === 'finance' ? 'usr-maya' : 'usr-rina',
+					name: roleQuery,
+					email: `${roleQuery}@hanjo.id`,
+					role: roleQuery as any,
+					outlet_ids: ['out-jkt-01']
+				}
+			: (currentUser || {
+					id: 'usr-rina',
+					name: 'Rina',
+					email: 'rina@hanjo.id',
+					role: 'owner',
+					outlet_ids: ['*']
+				});
+
+		const pendingApprovalsCount = getPendingApprovalsCountForUser(targetUser);
 
 		// Lencana angka per peran (PRD 8.4)
 		if (role === 'brand_manager') {
 			const bmBadges: NavBadges = {
-				'approvals.pending_for_me': 3,
+				'approvals.pending_for_me': pendingApprovalsCount,
 				'inventory.below_min': 3,
 				'procurement.invoices_waiting': 2,
 				'petty_cash.pending_verification': 1,
@@ -66,7 +87,7 @@ export function registerNavHandlers(): void {
 
 		if (role === 'store_manager') {
 			const smBadges: NavBadges = {
-				'approvals.pending_for_me': 1,
+				'approvals.pending_for_me': pendingApprovalsCount,
 				'inventory.below_min': 2,
 				'procurement.invoices_waiting': 1,
 				'petty_cash.pending_verification': 1,
@@ -77,7 +98,7 @@ export function registerNavHandlers(): void {
 
 		if (role === 'finance') {
 			const financeBadges: NavBadges = {
-				'approvals.pending_for_me': 2,
+				'approvals.pending_for_me': pendingApprovalsCount,
 				'procurement.invoices_waiting': 3,
 				'petty_cash.pending_verification': 2,
 				'finance.true_up_pending': 3
@@ -87,7 +108,7 @@ export function registerNavHandlers(): void {
 
 		if (role === 'hq_admin') {
 			const adminBadges: NavBadges = {
-				'approvals.pending_for_me': 3,
+				'approvals.pending_for_me': pendingApprovalsCount,
 				'inventory.below_min': 4,
 				'procurement.invoices_waiting': 3,
 				'catalog.proposals_pending': 2
@@ -97,7 +118,7 @@ export function registerNavHandlers(): void {
 
 		// Owner (akses konsolidasi penuh)
 		const ownerBadges: NavBadges = {
-			'approvals.pending_for_me': 3,
+			'approvals.pending_for_me': pendingApprovalsCount,
 			'inventory.below_min': 4,
 			'procurement.invoices_waiting': 3,
 			'petty_cash.pending_verification': 2,

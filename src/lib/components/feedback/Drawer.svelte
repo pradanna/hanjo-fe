@@ -5,6 +5,7 @@
 	 * Golden Rule 14 (Generous Padding & Anti-Sesak).
 	 */
 	import type { Snippet } from 'svelte';
+	import { lockScroll, unlockScroll } from '../../utils/scrollLock.js';
 
 	interface Props {
 		open?: boolean;
@@ -25,6 +26,15 @@
 		children,
 		footer
 	}: Props = $props();
+
+	$effect(() => {
+		if (open) {
+			lockScroll();
+			return () => {
+				unlockScroll();
+			};
+		}
+	});
 
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape' && open && onclose) {
@@ -98,6 +108,7 @@
 		display: flex;
 		justify-content: flex-end;
 		animation: fadeIn 0.18s ease-out;
+		overscroll-behavior: contain;
 	}
 
 	@keyframes fadeIn {
@@ -120,6 +131,7 @@
 		animation: slideInRight 0.24s cubic-bezier(0.16, 1, 0.3, 1);
 		position: relative;
 		overflow: hidden;
+		overscroll-behavior: contain;
 	}
 
 	@keyframes slideInRight {
@@ -191,6 +203,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 20px;
+		overscroll-behavior: contain;
 	}
 
 	.drawer-footer {
